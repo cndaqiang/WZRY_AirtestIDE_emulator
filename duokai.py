@@ -19,7 +19,7 @@ restarting in TCP mode port: 5555
 #运行时一个斜杠,脚本里写一个斜杠会报错
 C:\\Users\cndaqiang\Videos\AirtestIDE\airtest\core\android\static\adb\windows\adb.exe devices
 "C:\\Users\cndaqiang\Videos\AirtestIDE\AirtestIDE" pyrunner "C:\\Users\cndaqiang\Desktop\WZRY_AirtestIDE-main 2\WZRY_AirtestIDE-main\XiaoMI11.py" 
-也可以python 1.py 但是要提前pip安装airtest
+也可以python 1.py 但是要提前pip安装python -m pip install airtest
 #bluestack问题
 无法启动bluestacks 请发送问题报告，安装到D盘也可以了，是c盘压缩的原因
 14G/虚拟机
@@ -42,7 +42,7 @@ __author__ = "xr"
 设备类型_dict[0]="Android"
 设备类型_dict[1]="Android"
 设备类型_dict[2]="Android"
-设备IP地址_dict[0]="127.0.0.1:"+str( 52273 ) #fashi
+设备IP地址_dict[0]="192.168.12.152:"+str( 5555 ) #fashi
 设备IP地址_dict[1]="127.0.0.1:"+str( 52261 )#duikang
 设备IP地址_dict[2]="127.0.0.1:"+str( 60516 )#fayu
 

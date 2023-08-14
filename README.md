@@ -68,3 +68,8 @@ python -u .\duokai.py -totalnode
 #手动执行多线程,每个终端均执行下面的命令
 python -u .\duokai.py totalnode
 ```
+
+
+## 模拟器推荐
+- Windows Bluestack 多开adb都可以,还兼容hyper-v
+- Mac .没发现好用还能无线adb调试的 

@@ -30,7 +30,7 @@ from airtest.core.settings import Settings as ST
 import atexit
 import numpy as np
 
-port=64297
+port=5555
 ST.OPDELAY = 1
 # 全局阈值的范围为[0, 1]
 ST.THRESHOLD_STRICT = 0.7  # assert_exists语句的默认阈值，一般比THRESHOLD更高一些
@@ -97,7 +97,7 @@ except ImportError:
 
 # --------------------- 自定义信息 --------------------->
 设备类型 = "Android"  # 设备类型？(Android/Windows/iOS)
-设备IP地址 = "127.0.0.1"  # 设备IP地址:端口号 默认: (IOS: IP地址:8100 Android: IP地址:5555)
+设备IP地址 = "192.168.12.152"  # 设备IP地址:端口号 默认: (IOS: IP地址:8100 Android: IP地址:5555)
 
 
 次数 = 20  # 对战次数设置 一次大概27点经验
