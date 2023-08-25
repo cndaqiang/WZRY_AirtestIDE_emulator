@@ -43,7 +43,7 @@ __author__ = "xr"
 设备类型_dict[0]="Android"
 设备类型_dict[1]="Android"
 设备类型_dict[2]="Android"
-设备IP地址_dict[0]="127.0.0.1:"+str( 5555 ) #fashi
+设备IP地址_dict[0]="127.0.0.1:"+str( 5556 ) #fashi
 设备IP地址_dict[1]="127.0.0.1:"+str( 5565 )#duikang
 设备IP地址_dict[2]="127.0.0.1:"+str( 5575 )#fayu
 
@@ -590,6 +590,9 @@ def 匹配游戏():
     existsTHENtouch(Template(r"tpl1689666367752.png", record_pos=(0.42, -0.001), resolution=(960, 540)),"加油按钮",savepos=True)
     logger.warning("等待游戏结束...倒计时")
     #sleep(350) #游戏时间很长的,倒计时转移到游戏结束()
+    #新英雄，开局会有技能介绍,此处关闭
+    
+
 
 
 
@@ -762,6 +765,10 @@ def 游戏结束():
             logger.warning("超神继续3/3")
             jixu=True
             sleep(2)
+        if existsTHENtouch(Template(r"tpl1692955597109.png", record_pos=(-0.095, 0.113), resolution=(960, 540))):
+            logger.warning("网络卡顿提示")
+            jixu=True
+            sleep(2)         
         #
         #
         if first and jixu : continue
@@ -778,6 +785,7 @@ def 游戏结束():
             logger.warning("未监测到继续,sleep...")
             continue
         #
+
         if 返回房间:
             if 房间中(): break
         # 返回大厅
@@ -923,12 +931,15 @@ def 重启游戏():
         #匹配游戏中包含进入房间的代码
         sleep(5)
         匹配游戏()
+
         global 加速对战
         if 辅助:
             #barrier
             if not barriernode(type=英雄属性["type"],name="gaming"):
                 logger.warning("匹配游戏.同步失败")
                 #if k >= 10: 加速对战=True
+        #
+        existsTHENtouch(Template(r"tpl1692955192748.png", record_pos=(0.282, -0.172), resolution=(960, 540)),"关闭技能介绍")
         if 加速对战:
             logger.warning("加速对战>>>>")
             for iwait in np.arange(60):
