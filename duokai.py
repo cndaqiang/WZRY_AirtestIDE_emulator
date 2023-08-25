@@ -320,7 +320,7 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
 
 
 #防止卡顿
-防止卡顿=True
+防止卡顿=False #出错的概率极大
 #点击地图和发送消息都会中断人机。
 def 点击移动(i=1):
     if existsTHENtouch(Template(r"tpl1691145668868.png", record_pos=(-0.298, 0.159), resolution=(960, 540))):
@@ -423,10 +423,9 @@ def 异常处理_返回大厅(times=1):
     # 健康系统,或者其他问题选择重启APP
     if 健康系统():
         重启APP(设备信息["王者应用ID"],60*20)
-        return 异常处理_返回大厅(times)
     
     if times < 15 and times%4 == 0:
-        重启APP(设备信息["王者应用ID"],60)
+        重启APP(设备信息["王者应用ID"],10)
     #
     if times > 15:
         异常终止("无法返回大厅")
@@ -679,7 +678,7 @@ def 重启APP(ID,time=0): #ID=设备信息["王者应用ID"]
         print("sleep: %d"%(i),end='\r')
         sleep(printtime)
     start_app(ID)
-    sleep(30)
+    sleep(60*2)
 
 
 def 游戏结束():
@@ -911,7 +910,7 @@ def 重启游戏():
         return
     for k in range(次数):
         加速对战 = k%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用
-        
+
         次数2 -= 1
         logger.warning("第 {} 次运行子程序".format(k+1))
         #这里只负责打开程序
@@ -929,7 +928,7 @@ def 重启游戏():
             stop_app( 设备信息["王者应用ID"] )
             logger.warning("夜间停止刷游戏")
             sleep(60*60)
-            hour=time.localtime().tm_hourji
+            hour=time.localtime().tm_hour
 
         #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
         if 辅助:
