@@ -961,7 +961,6 @@ def 重启游戏():
                 sleep(20)
         sleep_time=60
         sleeploop=0
-        logger.warning("2此加速对战")
         while 对战中(加速对战): 
             logger.warning("等待对战结束")
             sleep_time=max(10,sleep_time/2*1.7)
