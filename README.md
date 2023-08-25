@@ -41,6 +41,31 @@ IP
         }
 ```
 
+## mac模拟器[不推荐]
+```
+#parallel desktop安装bliss
+#bliss 开始adb
+#kernelSu 授予termux root权限
+#termux 执行(因为bliss无法识别wifi，把网络识别成了有线网卡，不能利用安卓本文的无线调试，所以只能这样)
+su
+setprop service.adb.tcp.port 5555
+stop adbd
+start adbd
+#就可以用局域网调试了
+wm size 960x540
+wm density 120
+#上面这样设置完成后,重启也能保存,不用重新输入命令
+(base) cndaqiang@macmini ChromeDownload$ adb shell
+Parallels Virtual Platform:/ $ wm size
+Physical size: 1024x768
+Override size: 960x540
+#重启后需要断开pc的adb重新连接
+adb kill-server
+adb connect 10.211.55.19:5555
+#安装游戏
+adb install 10040714_com.tencent.tmgp.sgame_a2680838_8.4.1.6_fL2tC9.apk
+```
+
 注有些手机连接不上,找找原因
 
 ## airtest修改和运行
@@ -59,7 +84,7 @@ IP
 ```
 
 ## 多开运行
-- duokai.py 模拟器并行多开,分辨率960*540
+- duokai.py 模拟器并行多开,分辨率960*540,2G运行,5帧画面
 - monizhan.py 模拟战刷信誉分
 - XiaoMI11.py 以前的脚本,小米11专用
 ```
@@ -71,5 +96,5 @@ python -u .\duokai.py totalnode
 
 
 ## 模拟器推荐
-- Windows Bluestack 多开adb都可以,还兼容hyper-v
+- Windows Bluestack 多开adb都可以,还兼容hyper-v(Pie 64bit).  不兼容hyper-v的**Nougat模式**好像更省电，适合不用开wsl的笔记本,而且adb的端口也不会变
 - Mac .没发现好用还能无线adb调试的 

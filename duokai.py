@@ -19,10 +19,11 @@ restarting in TCP mode port: 5555
 #运行时一个斜杠,脚本里写一个斜杠会报错
 C:\\Users\cndaqiang\Videos\AirtestIDE\airtest\core\android\static\adb\windows\adb.exe devices
 "C:\\Users\cndaqiang\Videos\AirtestIDE\AirtestIDE" pyrunner "C:\\Users\cndaqiang\Desktop\WZRY_AirtestIDE-main 2\WZRY_AirtestIDE-main\XiaoMI11.py" 
-也可以python 1.py 但是要提前pip安装python -m pip install airtest
+也可以python 1.py 但是要提前pip安装python -m pip install airtest, pathos
 #bluestack问题
-无法启动bluestacks 请发送问题报告，安装到D盘也可以了，是c盘压缩的原因
-14G/虚拟机
+无法启动bluestacks 请发送问题报告，是c盘压缩的原因
+2G/虚拟机
+cmd执行python程序有时会卡住,需要回车,cmd默认值>属性关闭快速编辑模式
 #note
 多开刷机目的
 1. 友情重燃币
@@ -42,9 +43,9 @@ __author__ = "xr"
 设备类型_dict[0]="Android"
 设备类型_dict[1]="Android"
 设备类型_dict[2]="Android"
-设备IP地址_dict[0]="192.168.12.152:"+str( 5555 ) #fashi
-设备IP地址_dict[1]="127.0.0.1:"+str( 52261 )#duikang
-设备IP地址_dict[2]="127.0.0.1:"+str( 60516 )#fayu
+设备IP地址_dict[0]="127.0.0.1:"+str( 5565 ) #fashi
+设备IP地址_dict[1]="127.0.0.1:"+str( 5565 )#duikang
+设备IP地址_dict[2]="127.0.0.1:"+str( 5575 )#fayu
 
 
 import logging
@@ -86,9 +87,9 @@ if False:
 
 ST.OPDELAY = 1
 # 全局阈值的范围为[0, 1]
-ST.THRESHOLD_STRICT = 0.7  # assert_exists语句touch(Template(r"tpl1689665366952.png", record_pos=(-0.425, -0.055), resolution=(960, 540)))的默认阈值，一般比THRESHOLD更高一些
+ST.THRESHOLD_STRICT = 0.8  # assert_exists语句touch(Template(r"tpl1689665366952.png", record_pos=(-0.425, -0.055), resolution=(960, 540)))的默认阈值，一般比THRESHOLD更高一些
 
-ST.THRESHOLD = 0.7  # 其他语句的默认阈值
+ST.THRESHOLD = 0.8  # 其他语句的默认阈值
 #@如何设置minicap https://www.jianshu.com/p/71fa5c81246d
 auto_setup(__file__)
 logger = logging.getLogger("airtest")
@@ -134,12 +135,7 @@ def save_dict(position_dict,position_dict_file="position_dict.txt"):
     在人机试炼选英雄界面，显示全部英雄，选择你想用的英雄线路页面，别点击英雄, 截图, 王者放后台，打开相册
 '''
 
-'''
-后期修改
->>> pos = exists(Template(r"tpl1606822430589.png"))
->>> if pos:
->>>     touch(pos)
-'''
+
 
 
 mynode=-10
@@ -358,45 +354,89 @@ def 发送消息():
 
 # <--------------------- 自定义信息 ---------------------
 
-def 异常处理_返回大厅():
-    logger.warning("进入异常处理")
-
-    logger.warning("[异常]检测大厅")
+def 异常处理_返回大厅(times=1):
+    logger.warning("进入异常处理:%d"%(times))
     if 大厅中():
         return
+    
     logger.warning("[异常]检测对战")
     if 对战中():
         sleep(60)
         while 对战中(): sleep(60)
         游戏结束()
-        异常处理_返回大厅()
+        异常处理_返回大厅(times)
         return
-    # 健康系统
-    #> 先不考虑健康系统 
-    健康系统()
-    # 返回
-    logger.warning("[异常]检测返回")
-    if exists(Template(r"tpl1689665638029.png", record_pos=(-0.438, -0.251), resolution=(960, 540))):
-        logger.warning("返回")
-        touch(Template(r"tpl1689665638029.png", record_pos=(-0.438, -0.251), resolution=(960, 540)))
+
+    #登陆界面
+    #更新公告
+    更新公告=Template(r"tpl1692946575591.png", record_pos=(0.103, -0.235), resolution=(960, 540),threshold=0.9)
+    if exists(更新公告):
+        for igengxin in np.arange(30):
+            logger.warning("更新中%d"%(igengxin))
+            if exists(Template(r"tpl1692946702006.png", record_pos=(-0.009, -0.014), resolution=(960, 540),threshold=0.9)):
+                logger.warning("更新完成")
+                touch(Template(r"tpl1692946738054.png", record_pos=(-0.002, 0.116), resolution=(960, 540),threshold=0.9))
+                sleep(60)
+                break
+            elif not exists(更新公告):
+                logger.warning("找不到更新公告.break")
+                break
+            if exists(Template(r"tpl1692952266315.png", record_pos=(-0.411, 0.266), resolution=(960, 540),threshold=0.9)): logger.warning("正在下载资源包")
+            sleep(60)
+    if exists(Template(r"tpl1692946837840.png", record_pos=(-0.092, -0.166), resolution=(960, 540),threshold=0.9)):
+        logger.warning("同意游戏")
+        touch(Template(r"tpl1692946883784.png", record_pos=(0.092, 0.145), resolution=(960, 540),threshold=0.9))
+    #这里需要重新登录了
+    if exists(Template(r"tpl1692946938717.png", record_pos=(-0.108, 0.159), resolution=(960, 540),threshold=0.9)):
+        异常终止("需要重新登录")
+    if exists(Template(r"tpl1692951324205.png", record_pos=(0.005, -0.145), resolution=(960, 540))):
+        logger.warning("关闭家长莫模式")
+        touch(Template(r"tpl1692951358456.png", record_pos=(0.351, -0.175), resolution=(960, 540)))
+        sleep(5)
+
+    用户协议同意=Template(r"tpl1692952132065.png", record_pos=(0.062, 0.099), resolution=(960, 540),threshold=0.9)
+    existsTHENtouch(用户协议同意,"用户协议同意")
+            
+    开始游戏=Template(r"tpl1692947242096.png", record_pos=(-0.004, 0.158), resolution=(960, 540),threshold=0.9)
+    if existsTHENtouch(开始游戏,"登录界面.开始游戏",savepos=False): sleep(30)
+    活动关闭图标=Template(r"tpl1692947351223.png", record_pos=(0.428, -0.205), resolution=(960, 540),threshold=0.9)
+    while( existsTHENtouch(活动关闭图标,"活动关闭图标",savepos=False) ): sleep(15)
+    登录礼物=Template(r"tpl1692951432616.png", record_pos=(0.346, -0.207), resolution=(960, 540))
+    while( existsTHENtouch(登录礼物,"登录礼物图标",savepos=False) ): sleep(15)
+    #更改设备图形
+    existsTHENtouch(Template(r"tpl1692951507865.png", record_pos=(-0.106, 0.12), resolution=(960, 540),threshold=0.9),"关闭画面设置")
+    if exists(Template(r"tpl1692951548745.png", record_pos=(0.005, 0.084), resolution=(960, 540))):
+        关闭邀请=Template(r"tpl1692951558377.png", record_pos=(0.253, -0.147), resolution=(960, 540),threshold=0.9)
+        while( existsTHENtouch(关闭邀请,"关闭邀请")):sleep(15)
+        
+
+    if 大厅中(): return True
+
+    返回图标=Template(r"tpl1692949580380.png", record_pos=(-0.458, -0.25), resolution=(960, 540),threshold=0.9)
+
+    while( existsTHENtouch(返回图标,"返回图标",savepos=False) ): sleep(10)
+
+    if 大厅中(): return True
+    times=times+1
+    
+    # 健康系统,或者其他问题选择重启APP
+    if 健康系统():
+        重启APP(设备信息["王者应用ID"],60*20)
+        return 异常处理_返回大厅(times)
+    
+    if times < 15 and times%4 == 0:
+        重启APP(设备信息["王者应用ID"],60)
     #
-    # 广告直播
-    logger.warning("[异常]检测广告")
-    #@todo png
-    for i in range(5):
-        if exists(Template(r"关闭广告.png", record_pos=(0.429, -0.205), resolution=(2400, 1080))):
-            logger.warning("第 {} 次关闭广告".format(i + 1))
-            touch(Template(r"关闭广告.png", record_pos=(0.431, -0.203), resolution=(2400, 1080)))
-        else:
-            break
-    # 点击屏幕继续
-    logger.warning("[异常]检测点解屏幕继续")
-    #@todopng
-    if exists(Template(r"点击屏幕继续.png", record_pos=(0.002, 0.287), resolution=(2400, 1080))):
-        logger.warning("点击屏幕继续")
-        touch(Template(r"点击屏幕继续.png", record_pos=(0.002, 0.287), resolution=(2400, 1080)))
-    #
-    sleep(10)
+    if times > 15:
+        异常终止("无法返回大厅")
+    
+    return 异常处理_返回大厅(times)
+
+
+        
+    
+    #返回
+
 #
 def 手动返回房间(name=''):
     #手动返回房间
@@ -404,6 +444,7 @@ def 手动返回房间(name=''):
         if 房间中(): return True
         logger.warning(name+":无法进入房间,请手动操作")
         sleep(5)
+    异常终止("多开无法返回房间")
     return False    
 #@todo
 def 邀请辅助():
@@ -422,23 +463,21 @@ def 进入房间(times=1):
     if 房间中():
         return
     times=times+1
-    if times > 10:
-        logger.warning("无法进入房间")
-        os.kill(os.getpid(), signal.SIGINT)  # 退出程序
+    if times > 10: 异常终止("无法进入房间")
+
+    #
     #
     异常处理_返回大厅()
+    logger.warning("大厅中.开始进入房间")
     #wait等待元素出现，没出现就执行intervalfunc
-    if not existsTHENtouch(Template(r"tpl1689666004542.png", record_pos=(-0.102, 0.145), resolution=(960, 540)),"对战",savepos=True):
-
-        #touch()
-
+    if not existsTHENtouch(Template(r"tpl1689666004542.png", record_pos=(-0.102, 0.145), resolution=(960, 540)),"对战",savepos=False):
         logger.error("选择对战失败")
         进入房间(times); return
     sleep(2)
-    if not existsTHENtouch(Template(r"tpl1689666019941.png", record_pos=(-0.401, 0.098), resolution=(960, 540)),"5v5王者峡谷",savepos=True):
+    if not existsTHENtouch(Template(r"tpl1689666019941.png", record_pos=(-0.401, 0.098), resolution=(960, 540)),"5v5王者峡谷",savepos=False):
         进入房间(times); return
     sleep(2)
-    if not existsTHENtouch(Template(r"tpl1689666034409.png", record_pos=(0.056, 0.087), resolution=(960, 540)),"人机"):
+    if not existsTHENtouch(Template(r"tpl1689666034409.png", record_pos=(0.056, 0.087), resolution=(960, 540)),"人机",savepos=False):
         进入房间(times); return        
     sleep(2)
     if not 快速点击:
@@ -451,10 +490,8 @@ def 进入房间(times=1):
         青铜段位=True
         if 青铜段位:
             段位=Template(r"tpl1689666083204.png", record_pos=(0.014, -0.148), resolution=(960, 540))
-
         else:
             段位=Template(r"tpl1689666092009.png", record_pos=(0.0, 0.111), resolution=(960, 540))
-
         existsTHENtouch(段位,"选择段位")
     #
     # 开始练习
@@ -479,21 +516,6 @@ def 进入房间(times=1):
             logger.warning("不同意被禁赛了")
             sleep(30)
             if not existsTHENtouch(开始练习,"开始练习"): os.kill(os.getpid(), signal.SIGINT)
-        
-        #
-
-
-        if False: #没必要
-            # 选择路线
-            btn_pos = wait(Template(r"tpl1685431774988.png", record_pos=(-0.312, -0.073), resolution=(2400, 1080)), intervalfunc=异常处理)
-            try:
-                if btn_pos:
-                    touch(Template(r"tpl1685431774988.png", record_pos=(-0.312, -0.073), resolution=(2400, 1080)))
-                if exists(英雄属性["想玩位置"]):
-                    logger.warning("选择 想玩的位置")
-                    touch(英雄属性["想玩位置"])
-            except:
-                logger.error("选择 想玩的位置 失败")
 
         #>  邀请辅助()
         if not 房间中():
@@ -594,50 +616,12 @@ def 启动王者荣耀():
         return
     else:
        logger.warning("未能进入房间或大厅")
-       for i in range(5): #尝试异常处理
-           异常处理_返回大厅()
-           sleep(1)
-           if 大厅中():
-               return
+       异常处理_返回大厅() #这里进行关闭程序和打开的操作
+    #
     if not 大厅中():
-        logger.warning("无法进入大厅")
-        os.kill(os.getpid(), signal.SIGINT)
-    #暂时不进行重启游戏
+        异常终止("无法进入大厅")
     return
-    logger.warning("重新启动游戏")
-    start_app(设备信息["王者应用ID"])
-    #@todo 开始png
-    if exists(Template(r"软件更新.png", threshold=0.8, record_pos=(-0.365, 0.293), resolution=(2400, 1080))):
-        logger.warning("软件更新")
-        sleep(600)
-        if exists(Template(r"更新完成.png", record_pos=(-0.162, -0.017), resolution=(2400, 1080))):
-            touch(Template(r"更新完成确认.png", record_pos=(-0.003, 0.115), resolution=(2400, 1080)))
-            start_app(设备信息["王者应用ID"])
 
-    if exists(Template(r"更新公告.png", record_pos=(0.087, -0.202), resolution=(2400, 1080))):
-        logger.warning("关闭更新公告")
-        touch(Template(r"关闭更新公告.png", record_pos=(0.353, -0.205), resolution=(2400, 1080)))
-
-    sleep(20)
-    
-    #静音按钮
-    if exists(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080))):
-        try:
-            btn_pos = wait(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080)), intervalfunc=异常处理)
-            if btn_pos:
-                touch(btn_pos)
-                logger.warning("静音")
-        except:
-            logger.warning("静音失败")
-
-    #登录按钮
-    btn_pos = wait(Template(r"tpl1685505087170.png", threshold=0.9, record_pos=(0.0, 0.125), resolution=(2400, 1080)), interval=4, intervalfunc=异常处理)
-    try:
-        if btn_pos:
-            touch(btn_pos, times=5)
-            logger.warning("登录")
-    except:
-        logger.warning("登录失败")
 
 
 def 大厅中():
@@ -679,18 +663,19 @@ def 健康系统():
     #呵护双眼，请您休息
     if exists(Template(r"tpl1689666921933.png", record_pos=(0.122, -0.104), resolution=(960, 540))):
         logger.warning("您已禁赛")
-        stop_app(设备信息["王者应用ID"])
-        os.kill(os.getpid(), signal.SIGINT)  # 退出程序
-        # start_app(设备信息["王者应用ID"])
-        return True
-        #直接结束，不执行后面的
-        sleep(900)
-        启动王者荣耀()
-        raise Exception("您已禁赛")
         return True
     return False
 
-
+def 重启APP(ID,time=0): #ID=设备信息["王者应用ID"]
+    stop_app(ID)
+    logger.warning("关闭程序")
+    printtime=30
+    #这个时间就是给健康系统准备的
+    for i in np.arange(int(time/printtime)):
+        print("sleep: %d"%(i),end='\r')
+        sleep(printtime)
+    start_app(ID)
+    sleep(30)
 
 
 def 游戏结束():
@@ -708,7 +693,12 @@ def 游戏结束():
     timelimit(timekey="endgame",limit=60*20,init=True)
     while True:
         if timelimit(timekey="endgame",limit=60*20,init=False): 异常终止("结束游戏时间过长")
-
+        if 健康系统():
+            if 辅助:
+                异常终止("健康系统.辅助END")
+            else:
+                异常处理_返回大厅()
+                return
         #减少判断游戏结束的资源占用
         if not jixu:
             if 防止卡顿: 点击移动(1)
@@ -724,7 +714,7 @@ def 游戏结束():
                    sleep(20)
                    continue
             if jixu: first = False
-        健康系统()
+
         #分享和返回房间的按键有些冲突
         #
         #有时候会莫名进入分享界面
@@ -777,9 +767,8 @@ def 游戏结束():
         if first and jixu : continue
         #
         if os.path.exists("EXIT.txt"):
-            logger.warning("监测到EXIT,停止程序")
-            stop_app(设备信息["王者应用ID"])
-            os.kill(os.getpid(), signal.SIGINT)  # 退出程序  
+            异常终止("监测到EXIT,停止程序")
+
         if os.path.exists("END.txt"):
             logger.warning("监测到END,停止程序.保留王者")
             os.kill(os.getpid(), signal.SIGINT)  # 退出程序  
@@ -913,13 +902,15 @@ def 重启游戏():
     for k in range(次数):
         次数2 -= 1
         logger.warning("第 {} 次运行子程序".format(k+1))
+        #这里只负责打开程序
         if not device:
             #-------------------
             device = connect_device(设备信息["链接"])
             #-------------------
             logger.warning("设备信息: {}".format(设备信息))
-            启动王者荣耀()
-        #
+            启动王者荣耀() 
+        
+        #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
         if 辅助:
             返回房间=True
             手动返回房间("startgame")
@@ -927,7 +918,9 @@ def 重启游戏():
                 logger.warning("游戏房间.同步失败")
                 #这里考虑，加一个退出游戏
             #此处加一个邀请系统
-        #
+        else: #非辅助模式.可以暴力点，直接重启
+            异常处理_返回大厅()
+        #匹配游戏中包含进入房间的代码
         sleep(5)
         匹配游戏()
         global 加速对战
@@ -965,8 +958,7 @@ def 重启游戏():
         #
         save_dict(position_dict,position_dict_file)
         logger.warning("游戏已结束. sleep一段时间进入下层循环")
-    logger.warning("关闭游戏")
-    stop_app(设备信息["王者应用ID"])
+    异常终止("正常结束循环.关闭游戏")
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "-f":
@@ -1032,6 +1024,8 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
 
 
 

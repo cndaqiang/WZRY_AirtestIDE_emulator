@@ -110,12 +110,7 @@ def save_dict(position_dict,position_dict_file="position_dict_moni.txt"):
     在人机试炼选英雄界面，显示全部英雄，选择你想用的英雄线路页面，别点击英雄, 截图, 王者放后台，打开相册
 '''
 
-'''
-后期修改
->>> pos = exists(Template(r"tpl1606822430589.png"))
->>> if pos:
->>>     touch(pos)
-'''
+
 
 # --------------------- 自定义信息 --------------------->
 #主邀请辅助
@@ -639,40 +634,6 @@ def 启动王者荣耀():
         os.kill(os.getpid(), signal.SIGINT)
     #暂时不进行重启游戏
     return
-    logger.warning("重新启动游戏")
-    start_app(设备信息["王者应用ID"])
-    #@todo 开始png
-    if exists(Template(r"软件更新.png", threshold=0.8, record_pos=(-0.365, 0.293), resolution=(2400, 1080))):
-        logger.warning("软件更新")
-        sleep(600)
-        if exists(Template(r"更新完成.png", record_pos=(-0.162, -0.017), resolution=(2400, 1080))):
-            touch(Template(r"更新完成确认.png", record_pos=(-0.003, 0.115), resolution=(2400, 1080)))
-            start_app(设备信息["王者应用ID"])
-
-    if exists(Template(r"更新公告.png", record_pos=(0.087, -0.202), resolution=(2400, 1080))):
-        logger.warning("关闭更新公告")
-        touch(Template(r"关闭更新公告.png", record_pos=(0.353, -0.205), resolution=(2400, 1080)))
-
-    sleep(20)
-    
-    #静音按钮
-    if exists(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080))):
-        try:
-            btn_pos = wait(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080)), intervalfunc=异常处理)
-            if btn_pos:
-                touch(btn_pos)
-                logger.warning("静音")
-        except:
-            logger.warning("静音失败")
-
-    #登录按钮
-    btn_pos = wait(Template(r"tpl1685505087170.png", threshold=0.9, record_pos=(0.0, 0.125), resolution=(2400, 1080)), interval=4, intervalfunc=异常处理)
-    try:
-        if btn_pos:
-            touch(btn_pos, times=5)
-            logger.warning("登录")
-    except:
-        logger.warning("登录失败")
 
 
 def 大厅中():

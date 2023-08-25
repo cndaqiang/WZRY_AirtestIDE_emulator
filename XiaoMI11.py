@@ -88,12 +88,7 @@ except ImportError:
     在人机试炼选英雄界面，显示全部英雄，选择你想用的英雄线路页面，别点击英雄, 截图, 王者放后台，打开相册
 '''
 
-'''
-后期修改
->>> pos = exists(Template(r"tpl1606822430589.png"))
->>> if pos:
->>>     touch(pos)
-'''
+
 
 # --------------------- 自定义信息 --------------------->
 设备类型 = "Android"  # 设备类型？(Android/Windows/iOS)
@@ -203,40 +198,6 @@ def 异常处理_返回大厅():
     #
     sleep(10)
 
-
-def 邀请辅助():
-    if 辅助:
-        for i in range(10):
-            logger.warning("第 %s 次 等待邀请通过" % (i + 1))
-
-            if exists(Template(r"邀请成功.png", record_pos=(-0.245, -0.072), resolution=(2400, 1080))):
-                logger.warning("邀请成功")
-                sleep(5)
-                return
-            if exists(Template(r"邀请按钮.png", threshold=0.9, record_pos=(0.463, -0.195), resolution=(2400, 1080))):
-                logger.warning("邀请米莱狄")
-                touch(Template(r"邀请按钮.png", record_pos=(0.463, -0.195), resolution=(2400, 1080)))
-                continue
-
-            if exists(Template(r"微信邀请按钮.png", threshold=0.9, record_pos=(0.462, -0.195), resolution=(2400, 1080))):
-                logger.warning("对方未上线")
-
-            if exists(Template(r"对方组队中.png", record_pos=(0.462, -0.195), resolution=(2400, 1080))):
-                touch(Template(r"对方组队中.png", record_pos=(0.462, -0.195), resolution=(2400, 1080)))
-                if wait(Template(r"邀请组队中的队友.png", record_pos=(0.348, -0.206), resolution=(2400, 1080))):
-                    logger.warning("邀请组队中的队友")
-                    touch(Template(r"组队中的队友邀请按钮.png", record_pos=(0.364, -0.221), resolution=(2400, 1080)))
-                    sleep(5)
-                    continue
-
-            if exists(Template(r"已被健康系统禁止.png", record_pos=(-0.014, -0.025), resolution=(2400, 1080))):
-                logger.warning("对方已禁赛")
-                touch(Template(r"确定3.png", record_pos=(0.097, 0.117), resolution=(2400, 1080)))
-                return
-            if exists(Template(r"是否在微信邀请.png", record_pos=(-0.077, -0.015), resolution=(2400, 1080))):
-                logger.warning("对方未上线")
-                # touch(Template(r"取消按钮.png", record_pos=(-0.098, 0.117), resolution=(2400, 1080)))
-            sleep(5)
 
 def 进入房间(times=1):
     global 返回房间
@@ -405,39 +366,6 @@ def 启动王者荣耀():
         os.kill(os.getpid(), signal.SIGINT)
     #暂时不进行重启游戏
     return
-    logger.warning("重新启动游戏")
-    start_app(设备信息["王者应用ID"])
-    if exists(Template(r"软件更新.png", threshold=0.8, record_pos=(-0.365, 0.293), resolution=(2400, 1080))):
-        logger.warning("软件更新")
-        sleep(600)
-        if exists(Template(r"更新完成.png", record_pos=(-0.162, -0.017), resolution=(2400, 1080))):
-            touch(Template(r"更新完成确认.png", record_pos=(-0.003, 0.115), resolution=(2400, 1080)))
-            start_app(设备信息["王者应用ID"])
-
-    if exists(Template(r"更新公告.png", record_pos=(0.087, -0.202), resolution=(2400, 1080))):
-        logger.warning("关闭更新公告")
-        touch(Template(r"关闭更新公告.png", record_pos=(0.353, -0.205), resolution=(2400, 1080)))
-
-    sleep(20)
-    
-    #静音按钮
-    if exists(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080))):
-        try:
-            btn_pos = wait(Template(r"tpl1685505067018.png", threshold=0.9, record_pos=(0.414, -0.043), resolution=(2400, 1080)), intervalfunc=异常处理)
-            if btn_pos:
-                touch(btn_pos)
-                logger.warning("静音")
-        except:
-            logger.warning("静音失败")
-
-    #登录按钮
-    btn_pos = wait(Template(r"tpl1685505087170.png", threshold=0.9, record_pos=(0.0, 0.125), resolution=(2400, 1080)), interval=4, intervalfunc=异常处理)
-    try:
-        if btn_pos:
-            touch(btn_pos, times=5)
-            logger.warning("登录")
-    except:
-        logger.warning("登录失败")
 
 
 def 大厅中():
