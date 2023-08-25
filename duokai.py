@@ -919,8 +919,8 @@ def 重启游戏():
             device = connect_device(设备信息["链接"])
             #-------------------
             logger.warning("设备信息: {}".format(设备信息))
-            启动王者荣耀()
             start_app(设备信息["王者应用ID"])
+            启动王者荣耀()
         hour=time.localtime().tm_hour
         while hour >= 1 and hour <= 8:
             if 辅助: 异常终止("夜间停止刷游戏")
@@ -938,10 +938,8 @@ def 重启游戏():
                 logger.warning("游戏房间.同步失败")
                 #这里考虑，加一个退出游戏
             #此处加一个邀请系统
-        else: #非辅助模式.可以暴力点，直接重启
-            异常处理_返回大厅()
-        #匹配游戏中包含进入房间的代码
         sleep(5)
+
         匹配游戏()
 
         
