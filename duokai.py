@@ -43,7 +43,7 @@ __author__ = "xr"
 设备类型_dict[0]="Android"
 设备类型_dict[1]="Android"
 设备类型_dict[2]="Android"
-设备IP地址_dict[0]="127.0.0.1:"+str( 5556 ) #fashi
+设备IP地址_dict[0]="127.0.0.1:"+str( 5555 ) #fashi
 设备IP地址_dict[1]="127.0.0.1:"+str( 5565 )#duikang
 设备IP地址_dict[2]="127.0.0.1:"+str( 5575 )#fayu
 
@@ -147,12 +147,13 @@ multi_run=False #使用multip运行时，关闭其他node的输出
 
 参战英雄线路_dict={}
 参战英雄头像_dict={}
-参战英雄线路_dict[0]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
-参战英雄头像_dict[0]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
 
-参战英雄线路_dict[1]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540))
-参战英雄头像_dict[1]=Template(r"tpl1691818474653.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
-
+#用亚瑟的对抗路,胜率比较高
+参战英雄线路_dict[0]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540)) 
+参战英雄头像_dict[0]=Template(r"tpl1685515357752.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
+#中路
+参战英雄线路_dict[1]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
+参战英雄头像_dict[1]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
 
 参战英雄线路_dict[2]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
 参战英雄头像_dict[2]=Template(r"tpl1691029073589.png", record_pos=(0.11, -0.083), resolution=(960, 540))
