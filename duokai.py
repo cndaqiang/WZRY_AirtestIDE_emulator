@@ -905,10 +905,13 @@ def 重启游戏():
         position_dict=read_dict(position_dict_file)
     #
     device = False
+    global 加速对战
     #
     if 次数 <= 0:
         return
     for k in range(次数):
+        加速对战 = k%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用
+        
         次数2 -= 1
         logger.warning("第 {} 次运行子程序".format(k+1))
         #这里只负责打开程序
@@ -917,8 +920,17 @@ def 重启游戏():
             device = connect_device(设备信息["链接"])
             #-------------------
             logger.warning("设备信息: {}".format(设备信息))
-            启动王者荣耀() 
-        
+            启动王者荣耀()
+            start_app(设备信息["王者应用ID"])
+        hour=time.localtime().tm_hour
+        while hour >= 1 and hour <= 8:
+            if 辅助: 异常终止("夜间停止刷游戏")
+            #
+            stop_app( 设备信息["王者应用ID"] )
+            logger.warning("夜间停止刷游戏")
+            sleep(60*60)
+            hour=time.localtime().tm_hourji
+
         #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
         if 辅助:
             返回房间=True
@@ -933,7 +945,7 @@ def 重启游戏():
         sleep(5)
         匹配游戏()
 
-        global 加速对战
+        
         if 辅助:
             #barrier
             if not barriernode(type=英雄属性["type"],name="gaming"):
