@@ -1,0 +1,1 @@
+C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%1

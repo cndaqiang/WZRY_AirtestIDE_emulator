@@ -57,6 +57,7 @@ sleep(60*60*0) #计划任务运行
 设备类型_dict={}
 设备IP地址_dict={}
 设备类型_dict=["Android"]*5
+shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynode只决定哪台虚拟机
 设备IP地址_dict[0]="127.0.0.1:"+str( 5555 ) #对抗路
 设备IP地址_dict[1]="127.0.0.1:"+str( 5565 )#中路
 设备IP地址_dict[2]="127.0.0.1:"+str( 5575 )#发育路
@@ -154,22 +155,20 @@ multi_run=False #使用multip运行时，关闭其他node的输出
 参战英雄线路_dict={}
 参战英雄头像_dict={}
 
+#对抗、中路、发育、游走、打野
 #用亚瑟的对抗路,胜率比较高
-参战英雄线路_dict[0]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540)) 
-参战英雄头像_dict[0]=Template(r"tpl1685515357752.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
-#中路
-参战英雄线路_dict[1]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
-参战英雄头像_dict[1]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
-
-参战英雄线路_dict[2]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
-参战英雄头像_dict[2]=Template(r"tpl1691029073589.png", record_pos=(0.11, -0.083), resolution=(960, 540))
-
-参战英雄线路_dict[3]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
-参战英雄头像_dict[3]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
-参战英雄线路_dict[4]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
-参战英雄头像_dict[4]=Template(r"tpl1690442530784.png", record_pos=(0.108, -0.086), resolution=(960, 540))
-参战英雄线路_dict[5]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
-参战英雄头像_dict[5]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+0)%5]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540)) 
+参战英雄头像_dict[(shiftnode+0)%5]=Template(r"tpl1685515357752.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+1)%5]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+1)%5]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+2)%5]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+2)%5]=Template(r"tpl1691029073589.png", record_pos=(0.11, -0.083), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+3)%5]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+3)%5]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+4)%5]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+4)%5]=Template(r"tpl1690442530784.png", record_pos=(0.108, -0.086), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+5)%5]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+5)%5]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
 
 
 主TAG='.mom.'
@@ -226,7 +225,13 @@ def existsTHENtouch(png=Template(r"1.png"),str="",savepos=False):
 def 异常终止(errinfo="程序异常终止"):
     logger.warning(errinfo)
     global 设备信息
-    stop_app(设备信息["王者应用ID"])
+    try:
+        logger.warning("关闭APP")
+        stop_app(设备信息["王者应用ID"])
+    except:
+        logger.warning("关闭APP失败")
+    关闭虚拟机()
+    logger.warning("关闭自己")
     os.kill(os.getpid(), signal.SIGTERM)
     return True
 timedict={}
@@ -387,6 +392,10 @@ def 异常处理_返回大厅(times=1):
     if exists(更新公告):
         for igengxin in np.arange(30):
             logger.warning("更新中%d"%(igengxin))
+            关闭更新=Template(r"tpl1693446444598.png", record_pos=(0.428, -0.205), resolution=(960, 540),threshold=0.9)
+            if existsTHENtouch(关闭更新,"关闭更新",savepos=False):
+                sleep(10)
+                break
             if exists(Template(r"tpl1692946702006.png", record_pos=(-0.009, -0.014), resolution=(960, 540),threshold=0.9)):
                 logger.warning("更新完成")
                 touch(Template(r"tpl1692946738054.png", record_pos=(-0.002, 0.116), resolution=(960, 540),threshold=0.9))
@@ -677,19 +686,81 @@ def 健康系统():
         logger.warning("您已禁赛")
         return True
     return False
+def 链接设备(LINK=""):
+    device_link=False
+    try:
+        device_link = connect_device(LINK)
+        logger.warning("链接成功"+LINK)
+    except:
+        logger.warning("链接失败"+LINK)
+    return device_link
+def 开启虚拟机():
+   global mynode
+   windows = 'win' in sys.platform
+   logger.warning("打开虚拟机:%d"%(mynode))
+   if windows:
+    #os.system('start  C:\Progra~1\BlueStacks_nxt\HD-Player.exe')    
+    os.system("start /b run.bat %d"%(mynode))
+    #run.bat C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%1   
+    #C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_0 --cmd launchApp com.tencent.tmgp.sgame
 
-def 重启APP(ID,sleeptime=0): #ID=设备信息["王者应用ID"]
-    stop_app(ID)
-    logger.warning("关闭程序")
-    printtime=30
-    sleeptime=max(0,sleeptime)
-    #这个时间就是给健康系统准备的
+def 关闭虚拟机(): 
+   logger.warning("关闭虚拟机")
+   windows = 'win' in sys.platform
+   if windows:
+       os.system('taskkill /f /im HD-Player.exe')   
+def 重启虚拟机(LINK="",sleeptime=0):  #Link=设备信息["链接"]
+    logger.warning("重启虚拟机中")
+    global device
+    logger.warning("重启虚拟机with link="+LINK)
+    if len(LINK) > 0:
+        关闭虚拟机()
+    else:
+        logger.warning("link不匹配无法重启")
+        return 
+    sleeptime=max(10,sleeptime-60)
+    printtime=max(30,sleeptime/10)
     print("sleep %d min"%(sleeptime/60))
     for i in np.arange(int(sleeptime/printtime)):
-        print("sleep: %d"%(i),end='\r')
+        print("taskkill_sleep: %d"%(i),end='\r')
         sleep(printtime)
+    #
+    logger.warning("启动费虚拟机")
+    #
+    for i in np.arange(5):
+        开启虚拟机()
+        sleep(30)
+        logger.warning("链接设备中"+LINK)
+        device=链接设备(LINK)
+        if device: break
+    
+    if not device: 异常终止("重启虚拟机后无法ADB链接")
+    #-------------------
+
+        
+def 重启APP(ID,sleeptime=0,LINK=""): #ID=设备信息["王者应用ID"]
+    logger.warning("重启APP中")
+    try:
+        stop_app(ID)
+        logger.warning("关闭程序")
+    except:
+        logger.warning("关闭程序失败")
+    sleep(10)
+    if len(LINK) > 0:
+        重启虚拟机(LINK,sleeptime=sleeptime)
+    else:
+        sleeptime=max(10,sleeptime)
+        printtime=max(30,sleeptime/10)
+        #这个时间就是给健康系统准备的
+        print("sleep %d min"%(sleeptime/60))
+        for i in np.arange(int(sleeptime/printtime)):
+            print("sleep: %d"%(i),end='\r')
+            sleep(printtime)
+    logger.warning("打开程序")
     start_app(ID)
+    logger.warning("打开程序成功")
     sleep(60*2)
+    return True
 
 def 领任务礼包(times=1):
     logging.warning("ing")
@@ -912,7 +983,7 @@ def 重启游戏():
     global 辅助
     global mynode
     #
-    position_dict_file="position_dict."+str(mynode)+".txt"
+    position_dict_file="position_dict."+str((shiftnode+mynode)%5)+".txt"
     position_dict=read_dict(position_dict_file)
     #
     device = False
@@ -920,32 +991,49 @@ def 重启游戏():
     #
     if 次数 <= 0:
         return
+    link=设备信息["链接"]
+    port=link.split(":")[-1]
+    ip=link.split(":")[0]+":"+link.split(":")[1]
     for k in range(次数):
         #确定ADB正确连接
+        for port in np.append(int(port),np.arange(5555,5555,10)):
+            link=ip+":"+str(port)
+            if not device:
+                try:
+                    device = connect_device(link)
+                    logger.warning("链接成功"+link)
+                    设备信息["链接"]=link
+                    break
+                except:
+                    logger.warning("链接失败"+link)
+                #-------------------
+                logger.warning("设备信息: {}".format(设备信息))
         if not device:
-            #-------------------
-            device = connect_device(设备信息["链接"])
-            #-------------------
-            logger.warning("设备信息: {}".format(设备信息))
-        if not device:
-            异常终止("ADB连接设备失败")
-            return
+            if not 辅助:
+                logger.warning("链接失败.....重启虚拟机中")
+                重启APP(设备信息["王者应用ID"],0,设备信息["链接"])
+            else:
+                异常终止("ADB连接设备失败")
         #
         #凌晨到任务刷新时间关闭游戏
         hour=time.localtime().tm_hour
         minu=time.localtime().tm_min
         startclock=5
-        endclock=11
+        endclock=9
         while hour >=  endclock or hour <= startclock:
             if 辅助: break #异常终止("夜间停止刷游戏")
-            stop_app( 设备信息["王者应用ID"] )
+            #stop_app( 设备信息["王者应用ID"] )
             logger.warning("夜间停止刷游戏")
             #
             leftmin=max((startclock-hour)*60-minu,0)
             if hour >= endclock: leftmin=(24-hour)*60-minu
             leftmin=max(10,leftmin)
             logger.warning("预计等待%d min ~ %3.2f h"%(leftmin,leftmin/60.0))
-            sleep(leftmin*60)
+            if leftmin/60 > 1:
+                重启APP(设备信息["王者应用ID"],leftmin*60,设备信息["链接"])
+            else:
+                重启APP(设备信息["王者应用ID"],leftmin*60)
+            #sleep(leftmin*60)
             #
             hour=time.localtime().tm_hour
             min=time.localtime().tm_min
