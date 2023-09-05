@@ -11,7 +11,12 @@ python -u .\duokai.py  -n 2>&1 | tee result.txt
 python -u .\duokai.py n 1 2>&1 | tee result.txt
 ...
 python -u .\duokai.py n n 2>&1 | tee result.txt
+#debug模式，至少运行一个循环
+python -u xxxxdebugxxx.py n n 2>&1 | tee result.txt
+#模拟战模式，至少跑6个模拟战循环，然后每次凌晨开5个模拟战循环
+python -u xxxxmonixxx.py n n 2>&1 | tee result.txt
 
+#windows路径的\ ，在python中是转义的意思，注释中 用\ 报错多是这个原因
 #bluestack问题
 无法启动bluestacks 请发送问题报告，是c盘压缩的原因
 配置 1核心、2G内存、5帧、960x540、160DPI. 建议关闭hyper-V使用Nougat32位版
@@ -26,6 +31,8 @@ netsh advfirewall firewall add rule name="6555ADB" dir=in action=allow protocol=
 多开刷机目的
 1. 友情重燃币
 2. 师徒任务，增加名师点，并增加师父的金币
+#信誉分低于80分，时进入多人匹配或者人机都有概率弹出信誉分答题，脚本解决不了
+
 
 #用logger.warnin第一次会报错,忽略即可。 用logger.warning而不用print的好处时，输出的命令带时间
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,13 +53,18 @@ from airtest.core.settings import Settings as ST
 import atexit
 import numpy as np
 import time
-
+import random
 
 # --------------------- 自定义信息 --------------------->
 sleep(60*60*0) #计划任务运行
 次数 = 10000 #5  # 对战次数设置 一次大概27点经验 #1次十分钟，5h~30次
 加速对战= False #加速对战时，虽然会输，但是满足活动对于对战的判断
 选择英雄= True #False #不选择英雄时，是手动点取，适合刷特定英雄的任务
+模拟战模式="moni" in sys.argv[0]
+#New-Item -ItemType SymbolicLink -Path monizhan.win.py -Target .\duokai.py
+DEBUG="debug" in sys.argv[0]
+匹配模式=True
+
 #设备信息
 设备类型_dict={}
 设备IP地址_dict={}
@@ -64,7 +76,12 @@ shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynod
 设备IP地址_dict[3]="127.0.0.1:"+str( 5555 )#游走
 设备IP地址_dict[4]="127.0.0.1:"+str( 5555 )#
 
-
+虚拟机窗口名称_dict={}
+虚拟机窗口名称_dict[0]=str(0)
+虚拟机窗口名称_dict[1]=str(1)
+虚拟机窗口名称_dict[2]=str(2)
+虚拟机窗口名称_dict[3]=str(3)
+虚拟机窗口名称_dict[4]=str(4)
 
 # 版本检测 信号处理
 if sys.version < '3':
@@ -157,18 +174,19 @@ multi_run=False #使用multip运行时，关闭其他node的输出
 
 #对抗、中路、发育、游走、打野
 #用亚瑟的对抗路,胜率比较高
-参战英雄线路_dict[(shiftnode+0)%5]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540)) 
-参战英雄头像_dict[(shiftnode+0)%5]=Template(r"tpl1685515357752.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
-参战英雄线路_dict[(shiftnode+1)%5]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
-参战英雄头像_dict[(shiftnode+1)%5]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
-参战英雄线路_dict[(shiftnode+2)%5]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
-参战英雄头像_dict[(shiftnode+2)%5]=Template(r"tpl1691029073589.png", record_pos=(0.11, -0.083), resolution=(960, 540))
-参战英雄线路_dict[(shiftnode+3)%5]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
-参战英雄头像_dict[(shiftnode+3)%5]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
-参战英雄线路_dict[(shiftnode+4)%5]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
-参战英雄头像_dict[(shiftnode+4)%5]=Template(r"tpl1690442530784.png", record_pos=(0.108, -0.086), resolution=(960, 540))
-参战英雄线路_dict[(shiftnode+5)%5]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
-参战英雄头像_dict[(shiftnode+5)%5]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
+#这里%6,是提供了6种配置以供选择，和total node无关
+参战英雄线路_dict[(shiftnode+0)%6]=Template(r"tpl1689665490071.png", record_pos=(-0.315, -0.257), resolution=(960, 540)) 
+参战英雄头像_dict[(shiftnode+0)%6]=Template(r"tpl1685515357752.png", record_pos=(-0.359, 0.129), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+1)%6]=Template(r"tpl1689665455905.png", record_pos=(-0.066, -0.256), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+1)%6]=Template(r"tpl1691818492021.png", record_pos=(-0.278, 0.029), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+2)%6]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+2)%6]=Template(r"tpl1691029073589.png", record_pos=(0.11, -0.083), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+3)%6]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+3)%6]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+4)%6]=Template(r"tpl1689665540773.png", record_pos=(0.06, -0.259), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+4)%6]=Template(r"tpl1690442530784.png", record_pos=(0.108, -0.086), resolution=(960, 540))
+参战英雄线路_dict[(shiftnode+5)%6]=Template(r"tpl1689665577871.png", record_pos=(0.183, -0.26), resolution=(960, 540))
+参战英雄头像_dict[(shiftnode+5)%6]=Template(r"tpl1690442560069.png", record_pos=(0.11, 0.025), resolution=(960, 540))
 
 
 主TAG='.mom.'
@@ -197,40 +215,66 @@ def touchfile(filename):
         logger.warning("touch["+filename+"]成功")     
     except:
         logger.warning("touch["+filename+"]失败")   
-def existsTHENtouch(png=Template(r"1.png"),str="",savepos=False):
-    savepos=savepos and len(str) > 0
+def existsTHENtouch(png=Template(r"1.png"),keystr="",savepos=False):
+    savepos=savepos and len(keystr) > 0
     global position_dict
     global position_dict_file
     global 保存位置
     if not 保存位置: position_dict={}
     savepos = savepos and 保存位置
     if savepos:
-        if str in position_dict.keys():
-            touch(position_dict[str])
-            logger.warning("touch (saved) "+str)
+        if keystr in position_dict.keys():
+            touch(position_dict[keystr])
+            logger.warning("touch (saved) "+keystr)
             sleep(0.1)
             return True
     pos=exists(png)
     if pos:
         touch(pos)
-        if len(str) > 0: logger.warning("touch "+str)
+        if len(keystr) > 0: logger.warning("touch "+keystr)
         if savepos:
-            position_dict[str]=pos
+            position_dict[keystr]=pos
             save_dict(position_dict,position_dict_file)
         return True
     else:
-        if len(str) > 0:
-            logger.warning("NotFound "+str)
+        if len(keystr) > 0:
+            logger.warning("NotFound "+keystr)
         return False
+#touch的总时长timelimit s, 或者总循环次数<10
+def LoopTouch(png=Template(r"1.png"),keystr="",limit=0,loop=10,savepos=False):
+    timekey="LOOPTOUCH"+keystr+str(random.randint(1, 500))
+    if limit + loop < 0.5: limit=0;loop=1
+    timelimit(timekey=timekey,limit=limit,init=True)
+    runloop=1
+    while existsTHENtouch(png=png,keystr=keystr,savepos=savepos):
+        if limit > 0:
+            if timelimit(timekey=timekey,limit=limit,init=False):
+                logger.warning("TOUCH"+keystr+"超时.....")
+                break
+        if runloop > loop:
+            logger.warning("TOUCH"+keystr+"超LOOP.....")
+            break
+        sleep(10)
+        runloop=runloop+1
+    #
+    if exists(png):
+        logger.warning(keystr+"图片仍存在")
+        return False
+    else:
+        return True
+
+
+    pass
 def 异常终止(errinfo="程序异常终止"):
     logger.warning(errinfo)
     global 设备信息
+    global mynode
     try:
         logger.warning("关闭APP")
         stop_app(设备信息["王者应用ID"])
     except:
         logger.warning("关闭APP失败")
-    关闭虚拟机()
+    关闭虚拟机(获得连接虚拟机ID())
     logger.warning("关闭自己")
     os.kill(os.getpid(), signal.SIGTERM)
     return True
@@ -372,9 +416,15 @@ def 发送消息():
        return False
 
 # <--------------------- 自定义信息 ---------------------
+def 网络优化():
+    if exists(Template(r"tpl1693669091002.png", record_pos=(-0.003, -0.015), resolution=(960, 540))):
+        logger.warning("网络优化提示")
+        existsTHENtouch(Template(r"tpl1693669117249.png", record_pos=(-0.102, 0.116), resolution=(960, 540)),"下次吧")
 
 def 异常处理_返回大厅(times=1):
     logger.warning("进入异常处理:%d"%(times))
+    global 设备信息
+    start_app(设备信息["王者应用ID"])
     if 大厅中():
         return
     
@@ -385,9 +435,13 @@ def 异常处理_返回大厅(times=1):
         游戏结束()
         异常处理_返回大厅(times)
         return
+    if 对战中_王者模拟战(False): 
+        游戏结束_王者模拟战()
+        异常处理_返回大厅(times)
 
     #登陆界面
     #更新公告
+    网络优化()
     更新公告=Template(r"tpl1692946575591.png", record_pos=(0.103, -0.235), resolution=(960, 540),threshold=0.9)
     if exists(更新公告):
         for igengxin in np.arange(30):
@@ -419,39 +473,45 @@ def 异常处理_返回大厅(times=1):
 
     用户协议同意=Template(r"tpl1692952132065.png", record_pos=(0.062, 0.099), resolution=(960, 540),threshold=0.9)
     existsTHENtouch(用户协议同意,"用户协议同意")
-            
+    #
     开始游戏=Template(r"tpl1692947242096.png", record_pos=(-0.004, 0.158), resolution=(960, 540),threshold=0.9)
     if existsTHENtouch(开始游戏,"登录界面.开始游戏",savepos=False): sleep(30)
+
+    #活动界面
     活动关闭图标=Template(r"tpl1692947351223.png", record_pos=(0.428, -0.205), resolution=(960, 540),threshold=0.9)
     今日不再弹出=Template(r"tpl1693272038809.png", record_pos=(0.38, 0.215), resolution=(960, 540),threshold=0.9)
     大活动的关闭图标=Template(r"tpl1693271987720.png", record_pos=(0.428, -0.205), resolution=(960, 540),threshold=0.9)
-#超时做法
     timelimit(timekey="活动关闭",limit=60*5,init=True)
+    LoopTouch(活动关闭图标,"活动关闭图标",loop=5,savepos=False)
+    LoopTouch(大活动的关闭图标,"大活动的关闭图标",loop=5,savepos=False)
     while exists(今日不再弹出):#当活动海报太大时，容易识别关闭图标错误，此时采用历史的关闭图标位置
         if not existsTHENtouch(活动关闭图标,"保存的活动关闭图标",savepos=True): #没有字典,又没有识别到,可能是大活动图标
             break
         else:
             sleep(10)
         if timelimit(timekey="活动关闭",limit=60*5,init=False): break
-    if existsTHENtouch(大活动的关闭图标,"大活动的关闭图标",savepos=False) : sleep(15)
-    if existsTHENtouch(活动关闭图标,"活动关闭图标",savepos=False) : sleep(15)
+
     #
-    登录礼物=Template(r"tpl1692951432616.png", record_pos=(0.346, -0.207), resolution=(960, 540))
-    while( existsTHENtouch(登录礼物,"登录礼物图标",savepos=False) ): sleep(15)
-    #更改设备图形
+    活动关闭图标2=Template(r"tpl1692951432616.png", record_pos=(0.346, -0.207), resolution=(960, 540))
+    LoopTouch(活动关闭图标2,"活动关闭图标2",loop=5,savepos=False)
+
+    #各种异常，异常图标,比如网速不佳、画面设置、
     existsTHENtouch(Template(r"tpl1692951507865.png", record_pos=(-0.106, 0.12), resolution=(960, 540),threshold=0.9),"关闭画面设置")
+    #取消、确定画面
+    if exists(Template(r"tpl1693886922690.png", record_pos=(-0.005, 0.114), resolution=(960, 540))):
+        existsTHENtouch(Template(r"tpl1693886962076.png", record_pos=(0.097, 0.115), resolution=(960, 540)))
+
+
+    #邀请
     if exists(Template(r"tpl1692951548745.png", record_pos=(0.005, 0.084), resolution=(960, 540))):
         关闭邀请=Template(r"tpl1692951558377.png", record_pos=(0.253, -0.147), resolution=(960, 540),threshold=0.9)
-        while( existsTHENtouch(关闭邀请,"关闭邀请")):sleep(15)
-        
-
+        LoopTouch(关闭邀请,"关闭邀请",loop=5,savepos=False)
     if 大厅中(): return True
-
+    #
     返回图标=Template(r"tpl1692949580380.png", record_pos=(-0.458, -0.25), resolution=(960, 540),threshold=0.9)
-
-    while( existsTHENtouch(返回图标,"返回图标",savepos=False) ): sleep(10)
-
+    LoopTouch(返回图标,"返回图标",loop=10,savepos=False)
     if 大厅中(): return True
+    #
     times=times+1
     
     # 健康系统,或者其他问题选择重启APP
@@ -485,17 +545,17 @@ def 邀请辅助():
     return
 
 
-def 进入房间(times=1):
+def 进入匹配房间(times=1):
     global 返回房间
     global 选择模式
 #超时做法
     if times == 1:
-        timelimit(timekey="进入房间",limit=60*10,init=True)
+        timelimit(timekey="进入匹配房间",limit=60*10,init=True)
     else:
-        if timelimit(timekey="进入房间",limit=60*10,init=False):
-             logger.warning("进入房间超时.....")
+        if timelimit(timekey="进入匹配房间",limit=60*10,init=False):
+             logger.warning("进入匹配房间超时.....")
     times=times+1
-    if times > 10: 异常终止("times太大,进入房间失败")
+    if times > 10: 异常终止("times太大,进入匹配房间失败")
 
     if 对战中():
         sleep(60)
@@ -507,23 +567,23 @@ def 进入房间(times=1):
     #
     #
     异常处理_返回大厅()
-    logger.warning("大厅中.开始进入房间")
+    logger.warning("大厅中.开始进入匹配房间")
     #wait等待元素出现，没出现就执行intervalfunc
     if not existsTHENtouch(Template(r"tpl1689666004542.png", record_pos=(-0.102, 0.145), resolution=(960, 540)),"对战",savepos=False):
         logger.warning("选择对战失败")
-        return 进入房间(times)
+        return 进入匹配房间(times)
     sleep(2)
     if not existsTHENtouch(Template(r"tpl1689666019941.png", record_pos=(-0.401, 0.098), resolution=(960, 540)),"5v5王者峡谷",savepos=False):
-        return 进入房间(times)
+        return 进入匹配房间(times)
     sleep(2)
     if not existsTHENtouch(Template(r"tpl1689666034409.png", record_pos=(0.056, 0.087), resolution=(960, 540)),"人机",savepos=False):
-        return 进入房间(times) 
+        return 进入匹配房间(times) 
     sleep(2)
     if 选择模式:
         logger.warning("选择对战模式")
         if not existsTHENtouch(Template(r"tpl1689666057241.png", record_pos=(-0.308, -0.024), resolution=(960, 540)),"快速模式"):
         #if not existsTHENtouch(Template(r"tpl1689666069306.png", record_pos=(-0.302, -0.136), resolution=(960, 540)),"标准模式"):
-            return 进入房间(times)
+            return 进入匹配房间(times)
         # 选择难度
         global 青铜段位
         青铜段位=True
@@ -535,7 +595,7 @@ def 进入房间(times=1):
     #
     # 开始练习
     开始练习 = Template(r"tpl1689666102973.png", record_pos=(0.323, 0.161), resolution=(960, 540),threshold=0.9)
-    if not existsTHENtouch(开始练习,"开始练习"): return 进入房间(times)
+    if not existsTHENtouch(开始练习,"开始练习"): return 进入匹配房间(times)
     sleep(10)
     #
     房间中的开始按钮=Template(r"tpl1689666117573.png", record_pos=(0.096, 0.232), resolution=(960, 540)) #貌似没用
@@ -544,11 +604,11 @@ def 进入房间(times=1):
         while existsTHENtouch(Template(r"tpl1689667950453.png", record_pos=(-0.001, 0.111), resolution=(960, 540)),"不匹配被禁赛的确定按钮"):
             sleep(20)
             if existsTHENtouch(开始练习,"开始练习"): sleep(10)
-        return 进入房间(times)
-        #todo 高级人机的次数被用光了,重新进入房间选择青铜模式
+        return 进入匹配房间(times)
+        #todo 高级人机的次数被用光了,重新进入匹配房间选择青铜模式
         选择模式=True
         青铜段位=True
-        return 进入房间(times)
+        return 进入匹配房间(times)
 
     return True
             
@@ -569,7 +629,7 @@ def 匹配游戏(times=1):
 
     if 英雄属性["type"]:
         #主程序返回房间
-        进入房间()
+        进入匹配房间()
     else:
         logger.warning("辅助被邀请进房间")
         #todo 邀请系统代码
@@ -590,11 +650,11 @@ def 匹配游戏(times=1):
             logger.warning("超时太久,退出匹配")
             return False
         #匹配到队友界面,点击确认按钮
-        自己确定匹配 = existsTHENtouch(Template(r"tpl1689666290543.png", record_pos=(-0.001, 0.152), resolution=(960, 540)),"确定匹配按钮")
+        自己确定匹配 = existsTHENtouch(Template(r"tpl1689666290543.png", record_pos=(-0.001, 0.152), resolution=(960, 540),threshold=0.8),"确定匹配按钮")
         #出现英雄界面,则队友确认匹配了
         队友确认匹配 = exists(Template(r"tpl1689666311144.png", record_pos=(-0.394, -0.257), resolution=(960, 540),threshold=0.9))
         if 队友确认匹配: break
-        sleep(10)
+        sleep(2)
     #只有 队友确认匹配 才会执行下面的命令,不然就在循环中timelimit中返回False了
     #
     global 选择英雄
@@ -641,7 +701,8 @@ def 匹配游戏(times=1):
         sleep(10)
     #
     return True
-    
+
+
 def 大厅中():
     if exists(Template(r"tpl1689667333420.png", record_pos=(-0.176, 0.144), resolution=(960, 540))):
         logger.warning("正在大厅中")
@@ -694,27 +755,64 @@ def 链接设备(LINK=""):
     except:
         logger.warning("链接失败"+LINK)
     return device_link
+
+def 获得所有虚拟机PID():
+   windows = 'win' in sys.platform
+   logger.warning("查询虚拟机PID")
+   PIDS={}
+   if windows:
+    tasklist=os.popen('tasklist -FI "IMAGENAME eq HD-Player.exe" /V') #/V中显示的窗口标题就是虚拟机的名称,可以用于开启关闭
+    #WINDOWTITLE
+    cont=tasklist.readlines()
+    for i in cont:
+        if "HD-Player.exe" in i:
+            winname=(str(i.split()[-1]))
+            PIDS[winname]=int(i.split()[1])
+            logger.warning("Windows=%s, PID=%d"%(winname,PIDS[winname]))
+   return PIDS
+
+def 获得连接虚拟机ID():
+   windows = 'win' in sys.platform
+   global mynode
+   logger.warning("查询连接虚拟机PID")
+   PIDS={}
+   if windows:
+    PIDS=获得所有虚拟机PID()
+    mywinname=虚拟机窗口名称_dict[mynode%5]
+    if mywinname in PIDS.keys(): return PIDS[mywinname]
+   return 0
+
 def 开启虚拟机():
    global mynode
    windows = 'win' in sys.platform
    logger.warning("打开虚拟机:%d"%(mynode))
    if windows:
-    #os.system('start  C:\Progra~1\BlueStacks_nxt\HD-Player.exe')    
-    os.system("start /b run.bat %d"%(mynode))
-    #run.bat C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%1   
-    #C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_0 --cmd launchApp com.tencent.tmgp.sgame
-
-def 关闭虚拟机(): 
-   logger.warning("关闭虚拟机")
+    CMDtitle="cndaqiangHDPlayer"+str(mynode)
+    #貌似这样就可以,之前是因为powershell 无法很好的执行start命令,让人觉得命令不行
+    os.system("start \"%s\" /MIN C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%d"%(CMDtitle,mynode))
+    # #前台最小化执行,然后close掉对应的CMD窗口. start /b虽然能后台执行,但是python的窗口会和cmd的合并，无法取消也无法关闭程序以及python程序的运行都无法终止
+    # #前台运行，再关掉前台的cmd是目前最好的，这样也能通过
+    # os.system("start \"%s\" /MIN run.bat %d"%(CMDtitle,mynode))
+    # os.system("taskkill -F -FI \"WINDOWTITLE eq %s\" "%(CMDtitle))
+    # os.system("start \"%s\" /MIN C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%d"%(CMDtitle,mynode))
+def 关闭虚拟机(PID=0): 
+   logger.warning("关闭虚拟机PID="+str(PID))
    windows = 'win' in sys.platform
    if windows:
-       os.system('taskkill /f /im HD-Player.exe')   
+       if PID < 0: # 关闭所有虚拟机，暂时用不到
+           os.system('taskkill /f /im HD-Player.exe')
+       elif PID > 0:
+           os.system('taskkill /F /FI "PID eq '+str(PID)+'"')
+       else:
+           logger.warning("虚拟机PID错误")
+    
 def 重启虚拟机(LINK="",sleeptime=0):  #Link=设备信息["链接"]
     logger.warning("重启虚拟机中")
     global device
+    global mynode
     logger.warning("重启虚拟机with link="+LINK)
     if len(LINK) > 0:
-        关闭虚拟机()
+        关闭虚拟机(获得连接虚拟机ID())
     else:
         logger.warning("link不匹配无法重启")
         return 
@@ -820,6 +918,7 @@ def 游戏结束():
         if timelimit(timekey="endgame",limit=60*30,init=False) or 健康系统() or 大厅中():
             if 辅助: 异常终止("结束游戏时间过长 OR 健康系统 OR 大厅中")
             return 异常处理_返回大厅()
+        网络优化()
         if 房间中(): return
         if 对战中(): 
             sleep(30)
@@ -917,6 +1016,273 @@ def 游戏结束():
                     sleep(10)
             if 大厅中(): return
 #
+
+
+#++++++++++++++++++++++++++++++++++模拟战部分程序
+
+
+def 对战中_王者模拟战(处理对战=True):
+    正在对战=False
+    if exists(Template(r"tpl1690546926096.png", record_pos=(-0.416, -0.076), resolution=(960, 540))):
+        logger.warning("开始中")
+        if not 处理对战: return True
+        sleep(5)
+        正在对战=True
+    #立信界面
+
+    if exists(Template(r"tpl1690547491681.png", record_pos=(0.471, 0.165), resolution=(960, 540))):
+        logger.warning("战斗界面")
+        if not 处理对战: return True
+        sleep(5)
+        正在对战=True
+
+    if exists(Template(r"tpl1690552290188.png", record_pos=(0.158, 0.089), resolution=(960, 540))):
+        logger.warning("方案界面")
+        if not 处理对战: return True
+        sleep(5)
+        正在对战=True
+
+    
+    if 正在对战:
+        if not existsTHENtouch(Template(r"tpl1690546610171.png", record_pos=(0.391, 0.216), resolution=(960, 540))):
+            sleep(20)
+        sleep(10)
+        if not existsTHENtouch(Template(r"tpl1690547053276.png", record_pos=(0.458, -0.045), resolution=(960, 540))):
+            sleep(20)
+        sleep(10)
+    
+    #展开金币
+    if existsTHENtouch(Template(r"tpl1690546610171.png", record_pos=(0.391, 0.216), resolution=(960, 540))):
+        logger.warning("金币袋子")
+        if not 处理对战: return True
+    #刷新金币
+    times=0
+    
+    while existsTHENtouch(Template(r"tpl1690547053276.png", record_pos=(0.458, -0.045), resolution=(960, 540))) and times < 30:
+        if not 处理对战: return True
+        正在对战=True
+        if times%10 == 5 : logger.warning("刷新金币 {} ".format(times))
+        times=times+1
+        sleep(1)
+        if not exists(Template(r"tpl1690547457483.png", record_pos=(0.392, 0.216), resolution=(960, 540))):
+           logger.warning("金币刷新结束")
+           break
+
+    return 正在对战
+
+def 房间中_王者模拟战():
+    if 房间中():
+        logger.warning("标准模式房间中")
+        return True
+    if exists(Template(r"tpl1690546154479.png", record_pos=(-0.005, -0.032), resolution=(960, 540))):
+        logger.warning("快速模式房间中")
+        return True
+    return False
+
+def 开始界面_王者模拟战():
+    if exists(Template(r"tpl1690544074928.png", record_pos=(-0.449, 0.217), resolution=(960, 540))): return True
+    if exists(Template(r"tpl1690544124761.png", record_pos=(0.341, 0.16), resolution=(960, 540))): return True
+    return False
+
+
+def 游戏结束_王者模拟战():
+    jixu=False
+    global 返回房间
+    global 辅助
+    global mynode
+    global totalnode
+    #
+    logger.warning("等待对战结束")
+    #
+    ionode = mynode == 0 or totalnode == 1
+    endgamefile="endgame."+str(totalnode)+".txt"
+    first = totalnode > 1
+    if 辅助 and ionode: removefile(endgamefile) #endgame会在此处初始化删除,后面无需删除
+    #
+    logger.warning("准备结束本局")
+
+    #
+    jixutime=1
+
+    barriernode(type=英雄属性["type"],name="checkend_init")
+    timelimit(timekey="endgame",limit=60*20,init=True)
+    while True:
+        if timelimit(timekey="endgame",limit=60*30,init=False) or 健康系统() or 大厅中():
+            if 辅助: 异常终止("结束游戏时间过长 OR 健康系统 OR 大厅中")
+            return 异常处理_返回大厅()
+        网络优化()
+        if 房间中_王者模拟战(): return
+        if 对战中_王者模拟战(False):
+            sleeploop=0
+            while 对战中_王者模拟战(): #开始处理准备结束
+                sleep(10)
+                sleeploop=sleeploop+1
+                if sleeploop > 20: break #虚拟机王者程序卡住了
+            #++++++滴哦
+            for loop in range(30):#等待时间太长
+                if exists(Template(r"tpl1690545494867.png", record_pos=(0.0, 0.179), resolution=(960, 540))):
+                    logger.warning("正在退出")
+                    if existsTHENtouch(Template(r"tpl1690545545580.png", record_pos=(-0.101, 0.182), resolution=(960, 540))):
+                        logger.warning("点击退出")
+                        break
+                sleep(30)
+        #
+        if os.path.exists("EXIT.txt"):
+            异常终止("监测到EXIT,停止程序")
+        if os.path.exists("END.txt"):
+            logger.warning("监测到END,停止程序.保留王者")
+            os.kill(os.getpid(), signal.SIGINT)  # 退出程序  
+        #
+        #减少判断游戏结束的资源占用
+        if not jixu:
+            if 防止卡顿: 点击移动(1)
+        if 辅助 and first:
+            if ionode:
+               if jixu: touchfile(endgamefile)
+            else:
+               if os.path.exists(endgamefile):
+                   jixu = True
+                   logger.warning("收到主节点继续信号")
+               else:
+                   logger.warning("等待主节点继续信号")
+                   sleep(20)
+                   continue
+            if jixu: first = False
+        # 
+        网络优化()
+        if 房间中_王者模拟战(): break
+        if 大厅中(): break
+        if 辅助: sleep(30) #辅助时多停留
+        if existsTHENtouch(Template(r"tpl1690545762580.png", record_pos=(-0.001, 0.233), resolution=(960, 540))):
+            logger.warning("继续1")
+            jixu=True
+            sleep(5)
+        if existsTHENtouch(Template(r"tpl1690545802859.png", record_pos=(0.047, 0.124), resolution=(960, 540))):
+            logger.warning("继续2")
+            jixu=True
+            sleep(5)            
+        if existsTHENtouch(Template(r"tpl1690545854354.png", record_pos=(0.002, 0.227), resolution=(960, 540))):
+            logger.warning("继续3")
+            jixu=True
+            sleep(5)             
+        #
+        #
+        if os.path.exists("EXIT.txt"):
+            异常终止("监测到EXIT,停止程序")
+        if os.path.exists("END.txt"):
+            logger.warning("监测到END,停止程序.保留王者")
+            os.kill(os.getpid(), signal.SIGINT)  # 退出程序 
+        # 返回大厅
+        # 因为不能保证返回辅助账户返回房间，所以返回大厅更稳妥
+        if exists(Template(r"tpl1690545925867.png", record_pos=(-0.001, 0.241), resolution=(960, 540))):
+            if 返回房间:
+                if existsTHENtouch(Template(r"tpl1690545951270.png", record_pos=(0.075, 0.239), resolution=(960, 540)),"返回房间",savepos=True):
+                    
+                    sleep(10)
+#@todo ,添加barrier
+                    if 房间中_王者模拟战(): break 
+        if 大厅中(): return
+        if 房间中_王者模拟战(): return 
+
+#todo
+def 进入模拟战房间(times=1):
+    global 返回房间
+    global 选择模式
+#超时做法
+    if times == 1:
+        timelimit(timekey="进入匹配房间",limit=60*10,init=True)
+    else:
+        if timelimit(timekey="进入匹配房间",limit=60*10,init=False):
+             logger.warning("进入匹配房间超时.....")
+    times=times+1
+    if times > 10: 异常终止("times太大,进入匹配房间失败")
+    #
+    if 房间中_王者模拟战(): return
+    #
+    进入队列失败=Template(r"tpl1693660615126.png", record_pos=(-0.19, -0.141), resolution=(960, 540))
+    确定失败=Template(r"tpl1693660628972.png", record_pos=(-0.003, 0.118), resolution=(960, 540))
+    邀请好友=Template(r"tpl1693660666527.png", record_pos=(0.408, 0.166), resolution=(960, 540)) #就是进入房间
+    #
+    LoopTouch(邀请好友,"邀请好友",loop=10)
+    if 房间中_王者模拟战(): return
+    while exists(进入队列失败):
+        existsTHENtouch(确定失败)
+        sleep(20)
+        existsTHENtouch(邀请好友,"邀请好友")
+    #
+    if 房间中_王者模拟战(): return True
+    #    
+    异常处理_返回大厅()
+    logger.warning("大厅中.开始进入模拟战房间")
+    万象天工=Template(r"tpl1693660085537.png", record_pos=(0.259, 0.142), resolution=(960, 540))
+    if not existsTHENtouch(万象天工,"万象天工"):
+        进入模拟战房间(times)
+    王者模拟战图标=Template(r"tpl1693660105012.png", record_pos=(-0.435, -0.134), resolution=(960, 540))
+    任意位置继续=Template(r"tpl1693660122898.png", record_pos=(0.001, 0.252), resolution=(960, 540))#多次
+    任意位置继续2=Template(r"tpl1693660165029.png", record_pos=(-0.001, 0.244), resolution=(960, 540))
+    任意位置继续3=Template(r"tpl1693660182958.png", record_pos=(-0.004, 0.25), resolution=(960, 540))
+    existsTHENtouch(王者模拟战图标,"王者模拟战图标")
+    while existsTHENtouch(任意位置继续,"任意位置继续"): sleep(5)
+    while existsTHENtouch(任意位置继续2,"任意位置继续"): sleep(5)
+    while existsTHENtouch(任意位置继续3,"任意位置继续"): sleep(5)
+    图标1=Template(r"tpl1693660308858.png", record_pos=(0.0, -0.071), resolution=(960, 540))
+    图标2=Template(r"tpl1693660322376.png", record_pos=(0.059, 0.161), resolution=(960, 540))
+    if existsTHENtouch(图标1,"图标1"): sleep(5)
+    if existsTHENtouch(图标2,"图标2"): sleep(5)
+#新手要跳过教学局,自己先跳过
+    #
+    LoopTouch(邀请好友,"邀请好友",loop=10)
+    #
+    if 房间中_王者模拟战():
+        return True
+    else:
+        return 进入模拟战房间(times)
+    
+
+
+
+
+
+
+
+
+firstLOOP=True
+def 王者模拟战():
+    global firstLOOP
+    logger.warning("王者模拟战ing")
+    if firstLOOP:
+        if 对战中_王者模拟战(False): 游戏结束_王者模拟战()
+    logger.warning(".................. 正式开始完整的模拟战")
+    进入模拟战房间()
+        
+    自己确定匹配=False
+    队友确认匹配=False
+    timelimit(timekey="确认匹配",limit=60*1,init=True)
+    timelimit(timekey="超时确认匹配",limit=60*5,init=True)
+    while True:
+        #点击开始匹配按钮
+        开始匹配按钮=Template(r"tpl1689666117573.png", record_pos=(0.096, 0.232), resolution=(960, 540))
+        if 房间中(): existsTHENtouch(开始匹配按钮,"开始匹配按钮")
+        #
+        if timelimit(timekey="确认匹配",limit=60*1,init=False): logger.warning("超时,队友未确认匹配或大概率程序卡死")
+        if timelimit(timekey="超时确认匹配",limit=60*5,init=False): 
+            logger.warning("超时太久,退出匹配")
+            return False
+        #匹配到队友界面,点击确认按钮
+        确定匹配按钮=Template(r"tpl1689666290543.png", record_pos=(-0.001, 0.152), resolution=(960, 540),threshold=0.8)
+        if 自己确定匹配: 
+            #防止有时候自己确认匹配了，队友却没有
+            existsTHENtouch(确定匹配按钮,"确定匹配按钮")
+            队友确认匹配 = 对战中_王者模拟战(False)
+        else:
+            自己确定匹配 =existsTHENtouch(确定匹配按钮,"确定匹配按钮")
+        if 自己确定匹配 and 队友确认匹配: break
+        sleep(1)
+    #对战中
+    游戏结束_王者模拟战()
+    firstLOOP=False
+
+
 def 王者子进程(mynode_,设备类型, 设备IP地址):
     print(设备类型)
     print(设备IP地址)
@@ -982,13 +1348,17 @@ def 重启游戏():
     global position_dict_file
     global 辅助
     global mynode
+    global 匹配模式
+    global 模拟战模式
     #
-    position_dict_file="position_dict."+str((shiftnode+mynode)%5)+".txt"
+    #这里的%6也是对应提供了6种配置
+    position_dict_file="position_dict."+str((shiftnode+mynode)%6)+".txt"
     position_dict=read_dict(position_dict_file)
     #
     device = False
     global 加速对战
     #
+    模拟战次数=0
     if 次数 <= 0:
         return
     link=设备信息["链接"]
@@ -1015,12 +1385,28 @@ def 重启游戏():
             else:
                 异常终止("ADB连接设备失败")
         #
+        if DEBUG and False:
+            开启虚拟机()
+            sleep(5)
+            关闭虚拟机(获得连接虚拟机ID())
+            sleep(5)
+            continue
+
         #凌晨到任务刷新时间关闭游戏
         hour=time.localtime().tm_hour
         minu=time.localtime().tm_min
-        startclock=5
-        endclock=9
+        startclock=5 #服务器5点刷新礼包和信誉积分等
+        endclock=8
+        #
+        if 模拟战模式 and 模拟战次数 < 6: 
+            startclock=-1
+            endclock=25
+        if DEBUG and k == 0:
+            startclock=-1
+            endclock=25
+        #
         while hour >=  endclock or hour <= startclock:
+            模拟战次数=0 #第二天了归0重新计算
             if 辅助: break #异常终止("夜间停止刷游戏")
             #stop_app( 设备信息["王者应用ID"] )
             logger.warning("夜间停止刷游戏")
@@ -1037,11 +1423,12 @@ def 重启游戏():
             #
             hour=time.localtime().tm_hour
             min=time.localtime().tm_min
-
+        logger.warning("开启完毕")
+        start_app(设备信息["王者应用ID"])
         #每隔5局休息10min,防止电脑过热
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
         if not 辅助:
-            if k==0: 领任务礼包()
+            #if k==0: 领任务礼包()
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
                 重启APP(设备信息["王者应用ID"],10*60)
@@ -1049,29 +1436,35 @@ def 重启游戏():
         #
         logger.warning("第 {} 次运行子程序".format(k+1))
         #
-        #.......................................................
-        start_app(设备信息["王者应用ID"])
         #
-        #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
-        if 辅助: 手动返回房间("startgame")
-        if not barriernode(type=英雄属性["type"],name="room"):
-            logger.warning("游戏房间.同步失败")
-        #
-        if 匹配游戏(): existsTHENtouch(Template(r"tpl1692955192748.png", record_pos=(0.282, -0.172), resolution=(960, 540)),"关闭技能介绍")
-        #barrier
-        if not barriernode(type=英雄属性["type"],name="gaming"):
-            logger.warning("匹配游戏.同步失败")
-        #加速对战
-        加速对战 = k> 0 and k%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用,避免挂机检测用
-        timelimit(timekey="加速对战",limit=60*30,init=True)
-        if 加速对战:
-            while 对战中(加速对战): 
-                if timelimit(timekey="加速对战",limit=60*30,init=False): break
-                logger.warning("加速对战")
-                sleep(5)
-                if 防止卡顿: 点击移动(1)
-        #
-        游戏结束()
+        if 模拟战模式 and 模拟战次数 < 6:
+            logger.warning("王者模拟战ing.....")
+            王者模拟战()
+            模拟战次数=模拟战次数+1
+            continue
+        if 匹配模式:
+            logger.warning("5v5匹配模式")
+            #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
+            if 辅助: 手动返回房间("startgame")
+            if not barriernode(type=英雄属性["type"],name="room"):
+                logger.warning("游戏房间.同步失败")
+            #
+            if 匹配游戏(): existsTHENtouch(Template(r"tpl1692955192748.png", record_pos=(0.282, -0.172), resolution=(960, 540)),"关闭技能介绍")
+            #barrier
+            if not barriernode(type=英雄属性["type"],name="gaming"):
+                logger.warning("匹配游戏.同步失败")
+            #加速对战
+            加速对战 = k> 0 and k%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用,避免挂机检测用
+            timelimit(timekey="加速对战",limit=60*30,init=True)
+            if 加速对战:
+                while 对战中(加速对战): 
+                    if timelimit(timekey="加速对战",limit=60*30,init=False): break
+                    logger.warning("加速对战")
+                    sleep(5)
+                    if 防止卡顿: 点击移动(1)
+            #
+            游戏结束()
+
         #
         if not barriernode(type=英雄属性["type"],name="endgame"):
             logger.warning("游戏结束.同步失败")
@@ -1133,6 +1526,10 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
+
+
 
 
 
