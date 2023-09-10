@@ -61,6 +61,7 @@ sleep(60*60*0) #计划任务运行
 加速对战= False #加速对战时，虽然会输，但是满足活动对于对战的判断
 选择英雄= True #False #不选择英雄时，是手动点取，适合刷特定英雄的任务
 模拟战模式="moni" in sys.argv[0]
+模拟战MaxStep=6
 #New-Item -ItemType SymbolicLink -Path monizhan.win.py -Target .\duokai.py
 DEBUG="debug" in sys.argv[0]
 匹配模式=True
@@ -82,6 +83,13 @@ shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynod
 虚拟机窗口名称_dict[2]=str(2)
 虚拟机窗口名称_dict[3]=str(3)
 虚拟机窗口名称_dict[4]=str(4)
+
+dockerID_dict={}
+dockerID_dict[0]="35ae0e8e7d41"
+dockerID_dict[1]="5233c4c4f7f0"
+dockerID_dict[2]="5233c4c4f7f0"
+dockerID_dict[3]="5233c4c4f7f0"
+dockerID_dict[4]="5233c4c4f7f0"
 
 # 版本检测 信号处理
 if sys.version < '3':
@@ -426,7 +434,7 @@ def 异常处理_返回大厅(times=1):
     global 设备信息
     start_app(设备信息["王者应用ID"])
     if 大厅中():
-        return
+        return True
     
     logger.warning("[异常]检测对战")
     if 对战中():
@@ -485,6 +493,7 @@ def 异常处理_返回大厅(times=1):
     LoopTouch(活动关闭图标,"活动关闭图标",loop=5,savepos=False)
     LoopTouch(大活动的关闭图标,"大活动的关闭图标",loop=5,savepos=False)
     while exists(今日不再弹出):#当活动海报太大时，容易识别关闭图标错误，此时采用历史的关闭图标位置
+        logger.warning("今日不再弹出仍在")
         if not existsTHENtouch(活动关闭图标,"保存的活动关闭图标",savepos=True): #没有字典,又没有识别到,可能是大活动图标
             break
         else:
@@ -773,18 +782,23 @@ def 获得所有虚拟机PID():
 
 def 获得连接虚拟机ID():
    windows = 'win' in sys.platform
+   linux = 'linux' in sys.platform
    global mynode
    logger.warning("查询连接虚拟机PID")
    PIDS={}
    if windows:
     PIDS=获得所有虚拟机PID()
     mywinname=虚拟机窗口名称_dict[mynode%5]
-    if mywinname in PIDS.keys(): return PIDS[mywinname]
-   return 0
+    if mywinname in PIDS.keys(): return str(PIDS[mywinname])
+   if linux:
+       dockerID=dockerID_dict[mynode]
+       return dockerID
+   return "0"
 
 def 开启虚拟机():
    global mynode
    windows = 'win' in sys.platform
+   linux = 'linux' in sys.platform
    logger.warning("打开虚拟机:%d"%(mynode))
    if windows:
     CMDtitle="cndaqiangHDPlayer"+str(mynode)
@@ -795,22 +809,35 @@ def 开启虚拟机():
     # os.system("start \"%s\" /MIN run.bat %d"%(CMDtitle,mynode))
     # os.system("taskkill -F -FI \"WINDOWTITLE eq %s\" "%(CMDtitle))
     # os.system("start \"%s\" /MIN C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%d"%(CMDtitle,mynode))
-def 关闭虚拟机(PID=0): 
-   logger.warning("关闭虚拟机PID="+str(PID))
+   if linux:
+       os.system("docker start "+获得连接虚拟机ID())
+
+def 关闭虚拟机(PID="0"): 
+   logger.warning("关闭虚拟机PID="+PID)
    windows = 'win' in sys.platform
+   linux = 'linux' in sys.platform #docker虚拟机
    if windows:
-       if PID < 0: # 关闭所有虚拟机，暂时用不到
+       if int(PID) < 0: # 关闭所有虚拟机，暂时用不到
            os.system('taskkill /f /im HD-Player.exe')
-       elif PID > 0:
-           os.system('taskkill /F /FI "PID eq '+str(PID)+'"')
+       elif int(PID) > 0:
+           os.system('taskkill /F /FI "PID eq '+PID+'"')
        else:
            logger.warning("虚拟机PID错误")
-    
+   if linux:
+       #可以关闭,但没必要
+       if len(PID) > 10: #应该是12
+           os.system("docker stop "+PID)
+       else:
+           logger.warning("容器ID错误")
 def 重启虚拟机(LINK="",sleeptime=0):  #Link=设备信息["链接"]
     logger.warning("重启虚拟机中")
     global device
     global mynode
     logger.warning("重启虚拟机with link="+LINK)
+    windows = 'win' in sys.platform
+    linux = 'linux' in sys.platform #docker虚拟机
+    if linux:  #暂时不重启容器
+        sleep(sleeptime)
     if len(LINK) > 0:
         关闭虚拟机(获得连接虚拟机ID())
     else:
@@ -1041,32 +1068,31 @@ def 对战中_王者模拟战(处理对战=True):
         if not 处理对战: return True
         sleep(5)
         正在对战=True
-
-    
-    if 正在对战:
-        if not existsTHENtouch(Template(r"tpl1690546610171.png", record_pos=(0.391, 0.216), resolution=(960, 540))):
-            sleep(20)
-        sleep(10)
-        if not existsTHENtouch(Template(r"tpl1690547053276.png", record_pos=(0.458, -0.045), resolution=(960, 540))):
-            sleep(20)
-        sleep(10)
-    
-    #展开金币
-    if existsTHENtouch(Template(r"tpl1690546610171.png", record_pos=(0.391, 0.216), resolution=(960, 540))):
-        logger.warning("金币袋子")
+    钱袋子=Template(r"tpl1690546610171.png", record_pos=(0.391, 0.216), resolution=(960, 540))
+    刷新金币=Template(r"tpl1690547053276.png", record_pos=(0.458, -0.045), resolution=(960, 540))
+    关闭钱袋子=Template(r"tpl1690547457483.png", record_pos=(0.392, 0.216), resolution=(960, 540))
+    if exists(钱袋子):
+        logger.warning("钱袋子")
         if not 处理对战: return True
-    #刷新金币
-    times=0
-    
-    while existsTHENtouch(Template(r"tpl1690547053276.png", record_pos=(0.458, -0.045), resolution=(960, 540))) and times < 30:
+    if exists(刷新金币):
+        logger.warning("刷新金币")
         if not 处理对战: return True
-        正在对战=True
-        if times%10 == 5 : logger.warning("刷新金币 {} ".format(times))
-        times=times+1
-        sleep(1)
-        if not exists(Template(r"tpl1690547457483.png", record_pos=(0.392, 0.216), resolution=(960, 540))):
-           logger.warning("金币刷新结束")
-           break
+    #
+    if not 处理对战: return 正在对战
+    if not 正在对战: return 正在对战
+    #
+    #
+    #下面开始处理对战
+    LoopTouch(钱袋子,"钱袋子",loop=10)
+    LoopTouch(刷新金币,"刷新金币",loop=10)
+    timelimit(timekey="endgame",limit=60*20,init=True)
+    while 对战中_王者模拟战(False):
+        logger.warning("处理对战中")
+        LoopTouch(钱袋子,"钱袋子",loop=10) #点击结束后,应该变成X号
+        LoopTouch(刷新金币,"刷新金币",loop=10)
+        if not exists(关闭钱袋子) and not exists(钱袋子): return False
+        if timelimit(timekey="endgame",limit=60*20,init=False): break
+        sleep(10)
 
     return 正在对战
 
@@ -1277,6 +1303,11 @@ def 王者模拟战():
         else:
             自己确定匹配 =existsTHENtouch(确定匹配按钮,"确定匹配按钮")
         if 自己确定匹配 and 队友确认匹配: break
+        if exists(Template(r"tpl1689666311144.png", record_pos=(-0.394, -0.257), resolution=(960, 540),threshold=0.9)):
+            logger.warning("误进了5v5匹配界面")
+            sleep(60*5)
+            异常处理_返回大厅()
+            return
         sleep(1)
     #对战中
     游戏结束_王者模拟战()
@@ -1350,6 +1381,7 @@ def 重启游戏():
     global mynode
     global 匹配模式
     global 模拟战模式
+    global 模拟战MaxStep
     #
     #这里的%6也是对应提供了6种配置
     position_dict_file="position_dict."+str((shiftnode+mynode)%6)+".txt"
@@ -1358,7 +1390,8 @@ def 重启游戏():
     device = False
     global 加速对战
     #
-    模拟战次数=0
+    模拟战次数=0 #模拟战MaxStep
+    匹配5v5次数=0
     if 次数 <= 0:
         return
     link=设备信息["链接"]
@@ -1395,21 +1428,21 @@ def 重启游戏():
         #凌晨到任务刷新时间关闭游戏
         hour=time.localtime().tm_hour
         minu=time.localtime().tm_min
-        startclock=5 #服务器5点刷新礼包和信誉积分等
-        endclock=8
         #
-        if 模拟战模式 and 模拟战次数 < 6: 
-            startclock=-1
-            endclock=25
-        if DEBUG and k == 0:
-            startclock=-1
-            endclock=25
+        startclock=5;endclock=9 #服务器5点刷新礼包和信誉积分等
+        if k == 0: startclock=-1;endclock=25
+        if 模拟战模式 and 模拟战次数 < 模拟战MaxStep: startclock=-1;endclock=25
+        if DEBUG and k < 10: startclock=-1;endclock=25
         #
         while hour >=  endclock or hour <= startclock:
             模拟战次数=0 #第二天了归0重新计算
+            匹配5v5次数=0
             if 辅助: break #异常终止("夜间停止刷游戏")
             #stop_app( 设备信息["王者应用ID"] )
             logger.warning("夜间停止刷游戏")
+            #
+            #重启之前领下礼包
+            异常处理_返回大厅();logger.warning("领任务礼包");领任务礼包()
             #
             leftmin=max((startclock-hour)*60-minu,0)
             if hour >= endclock: leftmin=(24-hour)*60-minu
@@ -1425,24 +1458,26 @@ def 重启游戏():
             min=time.localtime().tm_min
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
-        #每隔5局休息10min,防止电脑过热
+        #每隔1h休息10min,防止电脑过热
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
         if not 辅助:
-            #if k==0: 领任务礼包()
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
-                重启APP(设备信息["王者应用ID"],10*60)
                 领任务礼包()
+                重启APP(设备信息["王者应用ID"],10*60)
         #
         logger.warning("第 {} 次运行子程序".format(k+1))
         #
         #
-        if 模拟战模式 and 模拟战次数 < 6:
-            logger.warning("王者模拟战ing.....")
+        if 模拟战模式 and 模拟战次数 < 模拟战MaxStep:
+            logger.warning("王者模拟战ing.....%d/%d"%(模拟战次数,模拟战MaxStep))
             王者模拟战()
             模拟战次数=模拟战次数+1
+            if 模拟战次数 == 模拟战MaxStep: 异常处理_返回大厅()
             continue
+        #
         if 匹配模式:
+            匹配5v5次数=匹配5v5次数+1
             logger.warning("5v5匹配模式")
             #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
             if 辅助: 手动返回房间("startgame")
@@ -1454,7 +1489,7 @@ def 重启游戏():
             if not barriernode(type=英雄属性["type"],name="gaming"):
                 logger.warning("匹配游戏.同步失败")
             #加速对战
-            加速对战 = k> 0 and k%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用,避免挂机检测用
+            加速对战 = k> 0 and 匹配5v5次数%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用,避免挂机检测用
             timelimit(timekey="加速对战",limit=60*30,init=True)
             if 加速对战:
                 while 对战中(加速对战): 
@@ -1526,6 +1561,8 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
 
 
 
