@@ -3,6 +3,24 @@
 '''
 python -m pip  install --upgrade pip
 提前pip安装python -m pip  install -i https://pypi.tuna.tsinghua.edu.cn/simple  airtest, pathos
+#debug代码
+link='Android:///127.0.0.1:5555'
+device = connect_device(link)
+start_app("com.tencent.tmgp.sgame")
+stop_app("com.tencent.tmgp.sgame")
+开始游戏=Template(r"tpl1692947242096.png", record_pos=(-0.004, 0.158), resolution=(960, 540),threshold=0.9)
+pos=exists(开始游戏)
+touch(pos)
+
+#for linux
+sudo apt-get install libgl1-mesa-glx
+#for arm linux
+cndaqiang@oracle:~/.local/lib/python3.10/site-packages/airtest/core/android/static/adb/linux$ mv adb adb.bak
+cndaqiang@oracle:~/.local/lib/python3.10/site-packages/airtest/core/android/static/adb/linux$ ln -s /usr/bin/adb .
+#airtest使用monkey控制安卓的命令 monkey -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1
+#会报错** SYS_KEYS has no physical keys but with factor 2.0%.
+#添加--pct-syskeys 0即可以通过, monkey --pct-syskeys 0 -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1
+#修改/home/cndaqiang/.local/lib/python3.10/site-packages/airtest/core/android/adb.py文件替代
 单开
 python -u .\duokai.py  2>&1 | tee result.txt
 多开
@@ -85,7 +103,7 @@ shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynod
 虚拟机窗口名称_dict[4]=str(4)
 
 dockerID_dict={}
-dockerID_dict[0]="35ae0e8e7d41"
+dockerID_dict[0]="d1e5c7149470"
 dockerID_dict[1]="5233c4c4f7f0"
 dockerID_dict[2]="5233c4c4f7f0"
 dockerID_dict[3]="5233c4c4f7f0"
@@ -450,6 +468,18 @@ def 异常处理_返回大厅(times=1):
     #登陆界面
     #更新公告
     网络优化()
+    #各种异常，异常图标,比如网速不佳、画面设置、
+    existsTHENtouch(Template(r"tpl1692951507865.png", record_pos=(-0.106, 0.12), resolution=(960, 540),threshold=0.9),"关闭画面设置")
+    #取消、确定画面
+    if exists(Template(r"tpl1693886922690.png", record_pos=(-0.005, 0.114), resolution=(960, 540))):
+        existsTHENtouch(Template(r"tpl1693886962076.png", record_pos=(0.097, 0.115), resolution=(960, 540)))
+    #更新资源
+    WIFI更新资源=Template(r"tpl1694357134235.png", record_pos=(-0.004, -0.019), resolution=(960, 540))
+    if exists(WIFI更新资源):
+        existsTHENtouch(Template(r"tpl1694357142735.png", record_pos=(-0.097, 0.116), resolution=(960, 540)))
+
+    if 大厅中(): return True
+    #
     更新公告=Template(r"tpl1692946575591.png", record_pos=(0.103, -0.235), resolution=(960, 540),threshold=0.9)
     if exists(更新公告):
         for igengxin in np.arange(30):
@@ -492,6 +522,7 @@ def 异常处理_返回大厅(times=1):
     timelimit(timekey="活动关闭",limit=60*5,init=True)
     LoopTouch(活动关闭图标,"活动关闭图标",loop=5,savepos=False)
     LoopTouch(大活动的关闭图标,"大活动的关闭图标",loop=5,savepos=False)
+    if 大厅中(): return True
     while exists(今日不再弹出):#当活动海报太大时，容易识别关闭图标错误，此时采用历史的关闭图标位置
         logger.warning("今日不再弹出仍在")
         if not existsTHENtouch(活动关闭图标,"保存的活动关闭图标",savepos=True): #没有字典,又没有识别到,可能是大活动图标
@@ -503,12 +534,9 @@ def 异常处理_返回大厅(times=1):
     #
     活动关闭图标2=Template(r"tpl1692951432616.png", record_pos=(0.346, -0.207), resolution=(960, 540))
     LoopTouch(活动关闭图标2,"活动关闭图标2",loop=5,savepos=False)
+    #
+    if 大厅中(): return True
 
-    #各种异常，异常图标,比如网速不佳、画面设置、
-    existsTHENtouch(Template(r"tpl1692951507865.png", record_pos=(-0.106, 0.12), resolution=(960, 540),threshold=0.9),"关闭画面设置")
-    #取消、确定画面
-    if exists(Template(r"tpl1693886922690.png", record_pos=(-0.005, 0.114), resolution=(960, 540))):
-        existsTHENtouch(Template(r"tpl1693886962076.png", record_pos=(0.097, 0.115), resolution=(960, 540)))
 
 
     #邀请
@@ -672,7 +700,7 @@ def 匹配游戏(times=1):
     if 选择英雄 and existsTHENtouch(Template(r"tpl1689666324375.png", record_pos=(-0.297, -0.022), resolution=(960, 540)),"展开英雄",savepos=False):
         sleep(1)
         existsTHENtouch(英雄属性["参战英雄线路"],"参战英雄线路",savepos=True)
-        sleep(10)
+        sleep(5)
         existsTHENtouch(英雄属性["参战英雄"],"参战英雄",savepos=True)
         sleep(1)
         #分路重复.png
@@ -802,6 +830,7 @@ def 开启虚拟机():
    logger.warning("打开虚拟机:%d"%(mynode))
    if windows:
     CMDtitle="cndaqiangHDPlayer"+str(mynode)
+    logger.warning("Bluestack:"+CMDtitle)
     #貌似这样就可以,之前是因为powershell 无法很好的执行start命令,让人觉得命令不行
     os.system("start \"%s\" /MIN C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%d"%(CMDtitle,mynode))
     # #前台最小化执行,然后close掉对应的CMD窗口. start /b虽然能后台执行,但是python的窗口会和cmd的合并，无法取消也无法关闭程序以及python程序的运行都无法终止
@@ -810,6 +839,7 @@ def 开启虚拟机():
     # os.system("taskkill -F -FI \"WINDOWTITLE eq %s\" "%(CMDtitle))
     # os.system("start \"%s\" /MIN C:\Progra~1\BlueStacks_nxt\HD-Player.exe --instance Nougat32_%d"%(CMDtitle,mynode))
    if linux:
+       logger.warning("打开容器:"+获得连接虚拟机ID())
        os.system("docker start "+获得连接虚拟机ID())
 
 def 关闭虚拟机(PID="0"): 
@@ -836,8 +866,6 @@ def 重启虚拟机(LINK="",sleeptime=0):  #Link=设备信息["链接"]
     logger.warning("重启虚拟机with link="+LINK)
     windows = 'win' in sys.platform
     linux = 'linux' in sys.platform #docker虚拟机
-    if linux:  #暂时不重启容器
-        sleep(sleeptime)
     if len(LINK) > 0:
         关闭虚拟机(获得连接虚拟机ID())
     else:
@@ -1411,6 +1439,7 @@ def 重启游戏():
                     logger.warning("链接失败"+link)
                 #-------------------
                 logger.warning("设备信息: {}".format(设备信息))
+        #
         if not device:
             if not 辅助:
                 logger.warning("链接失败.....重启虚拟机中")
@@ -1420,9 +1449,9 @@ def 重启游戏():
         #
         if DEBUG and False:
             开启虚拟机()
-            sleep(5)
+            sleep(10)
             关闭虚拟机(获得连接虚拟机ID())
-            sleep(5)
+            sleep(10)
             continue
 
         #凌晨到任务刷新时间关闭游戏
@@ -1432,7 +1461,7 @@ def 重启游戏():
         startclock=5;endclock=9 #服务器5点刷新礼包和信誉积分等
         if k == 0: startclock=-1;endclock=25
         if 模拟战模式 and 模拟战次数 < 模拟战MaxStep: startclock=-1;endclock=25
-        if DEBUG and k < 10: startclock=-1;endclock=25
+        if DEBUG and k < 2: startclock=-1;endclock=25
         #
         while hour >=  endclock or hour <= startclock:
             模拟战次数=0 #第二天了归0重新计算
@@ -1459,8 +1488,9 @@ def 重启游戏():
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
         #每隔1h休息10min,防止电脑过热
+        linux = 'linux' in sys.platform
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
-        if not 辅助:
+        if not 辅助 and not linux: #linux不需要冷却
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
                 领任务礼包()
@@ -1561,6 +1591,8 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
 
 
 

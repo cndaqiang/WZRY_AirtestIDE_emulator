@@ -97,4 +97,5 @@ python -u .\duokai.py totalnode
 
 ## 模拟器推荐
 - Windows Bluestack 多开adb都可以,还兼容hyper-v(Pie 64bit).  不兼容hyper-v的**Nougat模式**好像更省电，适合不用开wsl的笔记本,而且adb的端口也不会变
-- Mac .没发现好用还能无线adb调试的 
+- Linux使用[remote-android](https://github.com/remote-android/),支持arm服务器
+- Mac .没发现好用还能无线adb调试的.
