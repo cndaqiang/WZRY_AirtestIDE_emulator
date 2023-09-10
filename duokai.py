@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- encoding=utf8 -*-
 #可以这样命令行中运行
 '''
