@@ -993,6 +993,7 @@ def 领邮件礼包(times=1):
     下次吧=Template(r"tpl1694443587766.png", record_pos=(-0.097, 0.118), resolution=(960, 540))
     金币确定=Template(r"tpl1694443607846.png", record_pos=(0.002, 0.167), resolution=(960, 540))
     系统邮件=Template(r"tpl1694441115819.png", record_pos=(-0.446, -0.127), resolution=(960, 540))
+    系统快速领取=Template(r"tpl1694451260084.png", record_pos=(0.415, 0.236), resolution=(960, 540))
     解锁语音界面=Template(r"tpl1694441160296.png", record_pos=(-0.01, -0.015), resolution=(960, 540))
     我知道了=Template(r"tpl1694441175302.png", record_pos=(-0.1, 0.116), resolution=(960, 540))
     系统礼物确定=Template(r"tpl1694441190629.png", record_pos=(0.0, 0.165), resolution=(960, 540))
@@ -1013,7 +1014,7 @@ def 领邮件礼包(times=1):
         existsTHENtouch(下次吧,"下次吧")
         existsTHENtouch(金币确定,"金币确定")
     if existsTHENtouch(系统邮件):
-        existsTHENtouch(快速领取,"快速领取",savepos=False)
+        existsTHENtouch(系统快速领取,"系统快速领取",savepos=False)
         LoopTouch(黄色礼物确定,"黄色礼物确定",loop=10)
         while existsTHENtouch(系统礼物确定,"系统礼物确定"):
             if exists(解锁语音界面): existsTHENtouch(我知道了,"我知道了")
@@ -1709,6 +1710,7 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
 
 
 
