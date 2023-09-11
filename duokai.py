@@ -478,6 +478,10 @@ def 异常处理_返回大厅(times=1):
     WIFI更新资源=Template(r"tpl1694357134235.png", record_pos=(-0.004, -0.019), resolution=(960, 540))
     if exists(WIFI更新资源):
         existsTHENtouch(Template(r"tpl1694357142735.png", record_pos=(-0.097, 0.116), resolution=(960, 540)))
+    #更新图形显示设置
+    显示设置=Template(r"tpl1694359268612.png", record_pos=(-0.002, 0.12), resolution=(960, 540))
+    if exists(显示设置):
+        existsTHENtouch(Template(r"tpl1694359275922.png", record_pos=(-0.113, 0.124), resolution=(960, 540)))
 
     if 大厅中(): return True
     #
@@ -530,7 +534,7 @@ def 异常处理_返回大厅(times=1):
             break
         else:
             sleep(10)
-        if timelimit(timekey="活动关闭",limit=60*5,init=False): break
+        if timelimit(timekey="活动关闭",limit=60*1,init=False): break
 
     #
     活动关闭图标2=Template(r"tpl1692951432616.png", record_pos=(0.346, -0.207), resolution=(960, 540))
@@ -1002,6 +1006,10 @@ def 游戏结束():
                    continue
             if jixu: first = False
         #分享和返回房间的按键有些冲突
+        游戏结束了=Template(r"tpl1694360304332.png", record_pos=(-0.011, -0.011), resolution=(960, 540))
+        if exists(游戏结束了):
+            existsTHENtouch(Template(r"tpl1694360310806.png", record_pos=(-0.001, 0.117), resolution=(960, 540)))
+
         #有时候会莫名进入分享界面
         if exists(Template(r"tpl1689667038979.png", record_pos=(0.193, 0.231), resolution=(960, 540))):
             logger.warning("分享界面")
@@ -1592,6 +1600,10 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
+
+
 
 
 
