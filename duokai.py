@@ -44,7 +44,7 @@ cmd执行python程序有时会卡住,需要回车,cmd默认值>属性关闭快�
 brew install scrcpy
 brew install android-platform-tools
 adb connect 后直接scrpy即可
-
+scrcpy -s 192.168.192.10:5565
 #远程ADB
 用于多设备组队,手机ADB刷任务等
 netsh interface portproxy add v4tov4 listenport=6555 connectaddress=127.0.0.1 connectport=5555
@@ -116,11 +116,12 @@ shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynod
 虚拟机窗口名称_dict[4]=str(4)
 
 dockerID_dict={}
-dockerID_dict[0]="d1e5c7149470"
-dockerID_dict[1]="5233c4c4f7f0"
-dockerID_dict[2]="5233c4c4f7f0"
-dockerID_dict[3]="5233c4c4f7f0"
-dockerID_dict[4]="5233c4c4f7f0"
+#目前多开占用的空间并不多,但没有账户,所以只有0-2容器实际存在
+dockerID_dict[0]="androidcontain0"
+dockerID_dict[1]="androidcontain1"
+dockerID_dict[2]="androidcontain2"
+dockerID_dict[3]="androidcontain3"
+dockerID_dict[4]="androidcontain4"
 
 # 版本检测 信号处理
 if sys.version < '3':
@@ -324,6 +325,8 @@ def 异常终止(errinfo="程序异常终止"):
 timedict={}
 def timelimit(timekey="",limit=0,init=True):
     global timedict
+    global 容器优化
+    if 容器优化: limit=limit+120 #容器中比较卡,多反应一会
     if len(timekey) == 0: timekey="none"
     if not timekey in timedict.keys(): init = True
     if init:
@@ -949,6 +952,7 @@ def 领任务礼包(times=1):
     if times > 10: return False
     赛季任务界面=Template(r"tpl1693294751097.png", record_pos=(-0.11, -0.001), resolution=(960, 540))
     任务=Template(r"tpl1693192971740.png", record_pos=(0.204, 0.241), resolution=(960, 540),threshold=0.9)
+    existsTHENtouch(任务,"任务按钮")
     if not exists(赛季任务界面):
         if not 大厅中(): 异常处理_返回大厅()
         if existsTHENtouch(任务,"任务按钮"):
@@ -971,6 +975,81 @@ def 领任务礼包(times=1):
     return True
 
 
+def 领邮件礼包(times=1):
+    logging.warning("领邮件礼包ing")
+    if times == 1:
+        timelimit(timekey="领邮件礼包",limit=60*5,init=True)
+    else:
+        if timelimit(timekey="领邮件礼包",limit=60*5,init=False):
+             logger.warning("领任务礼包超时.....")
+    times=times+1
+    if times > 10: return False
+    邮件图标=Template(r"tpl1694441018032.png", record_pos=(0.35, -0.251), resolution=(960, 540))
+    好友邮件=Template(r"tpl1694441042380.png", record_pos=(-0.453, -0.188), resolution=(960, 540))
+    收到邮件=Template(r"tpl1694441057562.png", record_pos=(-0.31, -0.199), resolution=(960, 540))
+    快速领取=Template(r"tpl1694441070767.png", record_pos=(0.385, 0.23), resolution=(960, 540))
+    下次吧=Template(r"tpl1694443587766.png", record_pos=(-0.097, 0.118), resolution=(960, 540))
+    金币确定=Template(r"tpl1694443607846.png", record_pos=(0.002, 0.167), resolution=(960, 540))
+    系统邮件=Template(r"tpl1694441115819.png", record_pos=(-0.446, -0.127), resolution=(960, 540))
+    解锁语音界面=Template(r"tpl1694441160296.png", record_pos=(-0.01, -0.015), resolution=(960, 540))
+    我知道了=Template(r"tpl1694441175302.png", record_pos=(-0.1, 0.116), resolution=(960, 540))
+    系统礼物确定=Template(r"tpl1694441190629.png", record_pos=(0.0, 0.165), resolution=(960, 540))
+    黄色礼物确定=Template(r"tpl1694441373245.png", record_pos=(-0.002, 0.116), resolution=(960, 540))
+    
+    返回=Template(r"tpl1694442171115.png", record_pos=(-0.441, -0.252), resolution=(960, 540))
+    existsTHENtouch(邮件图标)
+    if not exists(好友邮件):
+        if not 大厅中(): 异常处理_返回大厅()
+        if existsTHENtouch(邮件图标,"邮件图标"):
+            sleep(10)
+        if not exists(好友邮件): return 领邮件礼包(times)
+    #
+    if existsTHENtouch(好友邮件):
+        existsTHENtouch(收到邮件,"收到邮件",savepos=True)
+        existsTHENtouch(快速领取,"快速领取",savepos=True)
+        #缺少确定
+        existsTHENtouch(下次吧,"下次吧")
+        existsTHENtouch(金币确定,"金币确定")
+    if existsTHENtouch(系统邮件):
+        existsTHENtouch(快速领取,"快速领取",savepos=True)
+        LoopTouch(黄色礼物确定,"黄色礼物确定",loop=10)
+        while existsTHENtouch(系统礼物确定,"系统礼物确定"):
+            if exists(解锁语音界面): existsTHENtouch(我知道了,"我知道了")
+            LoopTouch(黄色礼物确定,"黄色礼物确定",loop=10)
+            if timelimit(timekey="领邮件礼包",limit=60*5,init=False):
+                         logger.warning("领邮件礼包超时.....")
+                         return 领邮件礼包(times)
+        LoopTouch(系统礼物确定,"系统礼物确定",loop=10)
+    existsTHENtouch(返回)
+
+def 小妲己礼物(times=1):
+    logging.warning("小妲己礼物ing")
+    if times == 1:
+        timelimit(timekey="小妲己礼物",limit=60*5,init=True)
+    else:
+        if timelimit(timekey="小妲己礼物",limit=60*5,init=False):
+             logger.warning("小妲己礼物超时.....")
+    times=times+1
+    if times > 10: return False
+
+    小妲己=Template(r"tpl1694441259292.png", record_pos=(0.458, 0.21), resolution=(960, 540))
+    一键领奖=Template(r"tpl1694442066106.png", record_pos=(-0.134, 0.033), resolution=(960, 540))
+    去领取=Template(r"tpl1694442088041.png", record_pos=(-0.135, 0.107), resolution=(960, 540))
+    收下=Template(r"tpl1694442103573.png", record_pos=(-0.006, 0.181), resolution=(960, 540))
+    确定=Template(r"tpl1694442122665.png", record_pos=(-0.003, 0.165), resolution=(960, 540))
+    返回=Template(r"tpl1694442136196.png", record_pos=(-0.445, -0.251), resolution=(960, 540))
+    #
+    if not existsTHENtouch(小妲己,"小妲己"):
+        if not 大厅中(): 异常处理_返回大厅()
+        if not existsTHENtouch(小妲己,"小妲己"): return 小妲己礼物(times)
+    #
+    if exists(一键领奖):
+        existsTHENtouch(去领取,"去领取")
+        LoopTouch(收下,"收下",loop=10)
+        LoopTouch(确定,"确定",loop=10)
+        LoopTouch(收下,"收下",loop=10)
+    existsTHENtouch(返回,"返回")
+    return True
 
 
 
@@ -1417,10 +1496,12 @@ def 王者子进程(mynode_,设备类型, 设备IP地址):
     barriernode(type,"启动游戏")
     sleep(mynode)
     #
-    atexit.register(重启游戏) #----------
+    logger.warning("重启游戏中.....")
+    重启游戏()
+    #使用下面的命令,在多进程共同刷机时,容易执行不起来，直接用上面的命令执行反而可以
+    #atexit.register(重启游戏) #----------
     #exit()
     #device = connect_device("Android:///192.168.12.211:43069")
-    #重启游戏()
     if multi_run and False:
         if not type: logfile.close()
 
@@ -1452,6 +1533,7 @@ def 重启游戏():
     link=设备信息["链接"]
     port=link.split(":")[-1]
     ip=link.split(":")[0]+":"+link.split(":")[1]
+    logger.warning("进入游戏循环:"+link)
     for k in range(次数):
         #确定ADB正确连接
         for port in np.append(int(port),np.arange(5555,5555,10)):
@@ -1498,31 +1580,36 @@ def 重启游戏():
             logger.warning("夜间停止刷游戏")
             #
             #重启之前领下礼包
-            异常处理_返回大厅();logger.warning("领任务礼包");领任务礼包()
+            异常处理_返回大厅();logger.warning("领任务礼包");领任务礼包();
+            异常处理_返回大厅();logger.warning("领邮件礼包");领邮件礼包();
+            异常处理_返回大厅();logger.warning("小妲己礼物");小妲己礼物();
             #
+            current_time=datetime.now(eastern_eight_tz)
+            hour=current_time.hour
+            minu=current_time.minute
             leftmin=max((startclock-hour)*60-minu,0)
             if hour >= endclock: leftmin=(24-hour)*60-minu
             leftmin=max(10,leftmin)
+            if 容器优化: leftmin=leftmin+mynode*2 #这样可以保证不同容器的启动时间不同
             logger.warning("预计等待%d min ~ %3.2f h"%(leftmin,leftmin/60.0))
             if leftmin/60 > 1:
+                #此时重启虚拟机
                 重启APP(设备信息["王者应用ID"],leftmin*60,设备信息["链接"])
             else:
                 重启APP(设备信息["王者应用ID"],leftmin*60)
             #sleep(leftmin*60)
             #
-            current_time=datetime.now(eastern_eight_tz)
-            hour=current_time.hour
-            minu=current_time.minute
+
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
         #每隔1h休息10min,防止电脑过热
         linux = 'linux' in sys.platform
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
-        if not 辅助 and not linux: #linux不需要冷却
+        if not 辅助: #领取礼包和笔记本冷却
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
-                领任务礼包()
-                重启APP(设备信息["王者应用ID"],10*60)
+                领任务礼包();领邮件礼包();小妲己礼物();
+                if not 容器优化:  重启APP(设备信息["王者应用ID"],10*60)
         #
         logger.warning("第 {} 次运行子程序".format(k+1))
         #
@@ -1619,19 +1706,6 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
