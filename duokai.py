@@ -40,6 +40,10 @@ python -u xxxxmonixxx.py n n 2>&1 | tee result.txt
 无法启动bluestacks 请发送问题报告，是c盘压缩的原因
 配置 1核心、2G内存、5帧、960x540、160DPI. 建议关闭hyper-V使用Nougat32位版
 cmd执行python程序有时会卡住,需要回车,cmd默认值>属性关闭快速编辑模式
+#mac scrpy
+brew install scrcpy
+brew install android-platform-tools
+adb connect 后直接scrpy即可
 
 #远程ADB
 用于多设备组队,手机ADB刷任务等
@@ -73,6 +77,14 @@ import atexit
 import numpy as np
 import time
 import random
+#防止服务器时区不同,设定时间为东八区
+from datetime import datetime, timezone, timedelta
+# 创建一个表示东八区时区的 timedelta 对象
+eastern_eight_offset = timedelta(hours=8)
+# 创建一个时区对象
+eastern_eight_tz = timezone(eastern_eight_offset)
+# 获取当前时间并将其应用于东八区时区
+current_time = datetime.now(eastern_eight_tz)
 
 # --------------------- 自定义信息 --------------------->
 sleep(60*60*0) #计划任务运行
@@ -158,6 +170,10 @@ global 保存位置
 #一些变量可以保存,重复运行不用读入
 position_dict={}
 position_dict_file="position_dict.txt"
+
+windowsplatform = 'win' in sys.platform
+linuxplatform = 'linux' in sys.platform
+容器优化=linuxplatform
 
 #读取变量
 def read_dict(position_dict_file="position_dict.txt"):
@@ -735,8 +751,10 @@ def 匹配游戏(times=1):
             logger.warning("加载游戏中.....")
             existsTHENtouch(Template(r"tpl1689666367752.png", record_pos=(0.42, -0.001), resolution=(960, 540)),"加油按钮",savepos=False)
             sleep(10)
+            if 容器优化: sleep(30) #貌似容器容易开在这个界面ß
             if not exists(加载游戏界面): break
         if timelimit(timekey="加载游戏",limit=60*10,init=False):
+            if 容器优化: break
             logger.warning("加载时间过长.....重启APP")
             重启APP(设备信息["王者应用ID"],10)
             return False
@@ -1464,8 +1482,9 @@ def 重启游戏():
             continue
 
         #凌晨到任务刷新时间关闭游戏
-        hour=time.localtime().tm_hour
-        minu=time.localtime().tm_min
+        current_time=datetime.now(eastern_eight_tz)
+        hour=current_time.hour
+        minu=current_time.minute
         #
         startclock=5;endclock=9 #服务器5点刷新礼包和信誉积分等
         if k == 0: startclock=-1;endclock=25
@@ -1476,7 +1495,6 @@ def 重启游戏():
             模拟战次数=0 #第二天了归0重新计算
             匹配5v5次数=0
             if 辅助: break #异常终止("夜间停止刷游戏")
-            #stop_app( 设备信息["王者应用ID"] )
             logger.warning("夜间停止刷游戏")
             #
             #重启之前领下礼包
@@ -1492,8 +1510,9 @@ def 重启游戏():
                 重启APP(设备信息["王者应用ID"],leftmin*60)
             #sleep(leftmin*60)
             #
-            hour=time.localtime().tm_hour
-            min=time.localtime().tm_min
+            current_time=datetime.now(eastern_eight_tz)
+            hour=current_time.hour
+            minu=current_time.minute
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
         #每隔1h休息10min,防止电脑过热
