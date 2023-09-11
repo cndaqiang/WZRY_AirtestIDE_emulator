@@ -967,11 +967,13 @@ def 领任务礼包(times=1):
     本周活跃1=Template(r"tpl1693359350755.png", record_pos=(0.401, -0.241), resolution=(960, 540))
     本周活跃2=Template(r"tpl1693193026234.png", record_pos=(0.463, -0.242), resolution=(960, 540))
     确定按钮=Template(r"tpl1693194657793.png", record_pos=(0.001, 0.164), resolution=(960, 540))
+    返回=Template(r"tpl1694442171115.png", record_pos=(-0.441, -0.252), resolution=(960, 540))
     if existsTHENtouch(一键领取 ,"一键领取 "): existsTHENtouch(确定按钮,"确定"); sleep(5)
     if existsTHENtouch(今日活跃 ,"今日活跃 "): existsTHENtouch(确定按钮,"确定"); sleep(5)
     if existsTHENtouch(本周活跃1,"本周活跃1"): existsTHENtouch(确定按钮,"确定"); sleep(5)
     if existsTHENtouch(本周活跃2,"本周活跃2"): existsTHENtouch(确定按钮,"确定"); sleep(5)
     #
+    existsTHENtouch(返回)
     return True
 
 
@@ -987,7 +989,7 @@ def 领邮件礼包(times=1):
     邮件图标=Template(r"tpl1694441018032.png", record_pos=(0.35, -0.251), resolution=(960, 540))
     好友邮件=Template(r"tpl1694441042380.png", record_pos=(-0.453, -0.188), resolution=(960, 540))
     收到邮件=Template(r"tpl1694441057562.png", record_pos=(-0.31, -0.199), resolution=(960, 540))
-    快速领取=Template(r"tpl1694441070767.png", record_pos=(0.385, 0.23), resolution=(960, 540))
+    快速领取=Template(r"tpl1694441070767.png", record_pos=(0.385, 0.23), resolution=(960, 540),threshold=0.9) #容易识别成快速删除了
     下次吧=Template(r"tpl1694443587766.png", record_pos=(-0.097, 0.118), resolution=(960, 540))
     金币确定=Template(r"tpl1694443607846.png", record_pos=(0.002, 0.167), resolution=(960, 540))
     系统邮件=Template(r"tpl1694441115819.png", record_pos=(-0.446, -0.127), resolution=(960, 540))
@@ -1021,6 +1023,7 @@ def 领邮件礼包(times=1):
                          return 领邮件礼包(times)
         LoopTouch(系统礼物确定,"系统礼物确定",loop=10)
     existsTHENtouch(返回)
+    return True
 
 def 小妲己礼物(times=1):
     logging.warning("小妲己礼物ing")
@@ -1706,6 +1709,8 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
+
 
 
 
