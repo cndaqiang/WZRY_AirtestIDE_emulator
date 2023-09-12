@@ -904,7 +904,7 @@ def 重启虚拟机(LINK="",sleeptime=0):  #Link=设备信息["链接"]
         print("taskkill_sleep: %d"%(i),end='\r')
         sleep(printtime)
     #
-    logger.warning("启动费虚拟机")
+    logger.warning("启动虚拟机")
     #
     for i in np.arange(5):
         开启虚拟机()
@@ -1566,7 +1566,6 @@ def 重启游戏():
             关闭虚拟机(获得连接虚拟机ID())
             sleep(10)
             continue
-
         #凌晨到任务刷新时间关闭游戏
         current_time=datetime.now(eastern_eight_tz)
         hour=current_time.hour
@@ -1577,16 +1576,14 @@ def 重启游戏():
         if 模拟战模式 and 模拟战次数 < 模拟战MaxStep: startclock=-1;endclock=25
         if DEBUG and k < 2: startclock=-1;endclock=25
         #
-        while hour >=  endclock or hour <= startclock:
+        while hour >=  endclock or hour < startclock: #< startclock
             模拟战次数=0 #第二天了归0重新计算
             匹配5v5次数=0
             if 辅助: break #异常终止("夜间停止刷游戏")
             logger.warning("夜间停止刷游戏")
             #
             #重启之前领下礼包
-            异常处理_返回大厅();logger.warning("领任务礼包");领任务礼包();
-            异常处理_返回大厅();logger.warning("领邮件礼包");领邮件礼包();
-            异常处理_返回大厅();logger.warning("小妲己礼物");小妲己礼物();
+            异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
             #
             current_time=datetime.now(eastern_eight_tz)
             hour=current_time.hour
@@ -1607,12 +1604,11 @@ def 重启游戏():
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
         #每隔1h休息10min,防止电脑过热
-        linux = 'linux' in sys.platform
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
         if not 辅助: #领取礼包和笔记本冷却
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
-                领任务礼包();领邮件礼包();小妲己礼物();
+                异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
                 if not 容器优化:  重启APP(设备信息["王者应用ID"],10*60)
         #
         logger.warning("第 {} 次运行子程序".format(k+1))
@@ -1710,6 +1706,7 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
 
 
 
