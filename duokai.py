@@ -992,6 +992,8 @@ def 领邮件礼包(times=1):
     快速领取=Template(r"tpl1694441070767.png", record_pos=(0.385, 0.23), resolution=(960, 540))
     下次吧=Template(r"tpl1694443587766.png", record_pos=(-0.097, 0.118), resolution=(960, 540))
     金币确定=Template(r"tpl1694443607846.png", record_pos=(0.002, 0.167), resolution=(960, 540))
+    点击屏幕继续=Template(r"tpl1694487484286.png", record_pos=(-0.006, 0.237), resolution=(960, 540))
+    友情确定=Template(r"tpl1694487498294.png", record_pos=(-0.097, 0.24), resolution=(960, 540))
     系统邮件=Template(r"tpl1694441115819.png", record_pos=(-0.446, -0.127), resolution=(960, 540))
     系统快速领取=Template(r"tpl1694451260084.png", record_pos=(0.415, 0.236), resolution=(960, 540))
     解锁语音界面=Template(r"tpl1694441160296.png", record_pos=(-0.01, -0.015), resolution=(960, 540))
@@ -1011,8 +1013,11 @@ def 领邮件礼包(times=1):
         existsTHENtouch(收到邮件,"收到邮件",savepos=True)
         existsTHENtouch(快速领取,"快速领取",savepos=True)
         #缺少确定
-        existsTHENtouch(下次吧,"下次吧")
+        LoopTouch(下次吧,"下次吧",loop=10)
         existsTHENtouch(金币确定,"金币确定")
+        existsTHENtouch(点击屏幕继续,"点击屏幕继续")
+        existsTHENtouch(友情确定,"友情确定")
+        #
     if existsTHENtouch(系统邮件):
         existsTHENtouch(系统快速领取,"系统快速领取",savepos=False)
         LoopTouch(黄色礼物确定,"黄色礼物确定",loop=10)
@@ -1581,8 +1586,7 @@ def 重启游戏():
             匹配5v5次数=0
             if 辅助: break #异常终止("夜间停止刷游戏")
             logger.warning("夜间停止刷游戏")
-            #
-            #重启之前领下礼包
+            #结束对战和每日凌晨会领礼包
             异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
             #
             current_time=datetime.now(eastern_eight_tz)
@@ -1590,16 +1594,20 @@ def 重启游戏():
             minu=current_time.minute
             leftmin=max((startclock-hour)*60-minu,0)
             if hour >= endclock: leftmin=(24-hour)*60-minu
-            leftmin=max(10,leftmin)
+            leftmin=max(2,leftmin)
             if 容器优化: leftmin=leftmin+mynode*2 #这样可以保证不同容器的启动时间不同
             logger.warning("预计等待%d min ~ %3.2f h"%(leftmin,leftmin/60.0))
             if leftmin/60 > 1:
                 #此时重启虚拟机
                 重启APP(设备信息["王者应用ID"],leftmin*60,设备信息["链接"])
-            else:
+            elif leftmin > 10:
                 重启APP(设备信息["王者应用ID"],leftmin*60)
-            #sleep(leftmin*60)
+            else:
+                sleep(leftmin*60)
             #
+            current_time=datetime.now(eastern_eight_tz)
+            hour=current_time.hour
+            minu=current_time.minute
 
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
@@ -1706,10 +1714,6 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
-
-
-
-
 
 
 
