@@ -61,6 +61,9 @@ netsh advfirewall firewall add rule name="6555ADB" dir=in action=allow protocol=
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: ([10:39:28][WARN... 删除[EXIT.txt]失败:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
+
+#金币数量35*4=140(单人组队)+150每日活跃=290. 290*7+700(周活跃)=2730.
+#对战上限3700. Total=6430. ~2周13888英雄
 '''
 
 __author__ = "cndaqiang"
@@ -1010,8 +1013,8 @@ def 领邮件礼包(times=1):
         if not exists(好友邮件): return 领邮件礼包(times)
     #
     if existsTHENtouch(好友邮件):
-        existsTHENtouch(收到邮件,"收到邮件",savepos=True)
-        existsTHENtouch(快速领取,"快速领取",savepos=True)
+        existsTHENtouch(收到邮件,"收到邮件",savepos=False)
+        existsTHENtouch(快速领取,"快速领取",savepos=False)
         #缺少确定
         LoopTouch(下次吧,"下次吧",loop=10)
         existsTHENtouch(金币确定,"金币确定")
@@ -1613,6 +1616,8 @@ def 重启游戏():
         start_app(设备信息["王者应用ID"])
         #每隔1h休息10min,防止电脑过热
         if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
+        if 匹配模式 and 匹配5v5次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
+        if 模拟战模式 and 模拟战次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
         if not 辅助: #领取礼包和笔记本冷却
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
@@ -1714,9 +1719,6 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
-
-
-
 
 
 
