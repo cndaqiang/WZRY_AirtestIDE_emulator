@@ -506,7 +506,8 @@ def 异常处理_返回大厅(times=1):
         existsTHENtouch(Template(r"tpl1694359275922.png", record_pos=(-0.113, 0.124), resolution=(960, 540)))
 
     if 大厅中(): return True
-    #
+    #大版本更新需要重新安装app,先不处理
+    #更新后,第一次参与各种对战,都会弹出一些意外的宣传页面,需要手动跳过
     更新公告=Template(r"tpl1692946575591.png", record_pos=(0.103, -0.235), resolution=(960, 540),threshold=0.9)
     if exists(更新公告):
         for igengxin in np.arange(30):
@@ -530,7 +531,15 @@ def 异常处理_返回大厅(times=1):
         touch(Template(r"tpl1692946883784.png", record_pos=(0.092, 0.145), resolution=(960, 540),threshold=0.9))
     #这里需要重新登录了
     if exists(Template(r"tpl1692946938717.png", record_pos=(-0.108, 0.159), resolution=(960, 540),threshold=0.9)):
-        异常终止("需要重新登录")
+        if 容器优化: 
+            logger.warning("需要重新登录")
+            重启APP(设备信息["王者应用ID"],60*60*4)
+            times=0
+        else:
+            异常终止("需要重新登录")
+        logger.warning("需要重新登录")
+        重启APP(设备信息["王者应用ID"],60*60*4)
+
     if exists(Template(r"tpl1692951324205.png", record_pos=(0.005, -0.145), resolution=(960, 540))):
         logger.warning("关闭家长莫模式")
         touch(Template(r"tpl1692951358456.png", record_pos=(0.351, -0.175), resolution=(960, 540)))
@@ -1580,11 +1589,16 @@ def 重启游戏():
         minu=current_time.minute
         #
         startclock=5;endclock=9 #服务器5点刷新礼包和信誉积分等
+        if mynode != 0 and totalnode == 1:
+            startclock=startclock+mynode*1
+            endclock=endclock+mynode*1
         if k == 0: startclock=-1;endclock=25
         if 模拟战模式 and 模拟战次数 < 模拟战MaxStep: startclock=-1;endclock=25
         if DEBUG and k < 2: startclock=-1;endclock=25
         #
         while hour >=  endclock or hour < startclock: #< startclock
+            logger.warning("匹配5v5运行次数"+str(匹配5v5次数))
+            logger.warning("模拟战运行次数"+str(模拟战次数))
             模拟战次数=0 #第二天了归0重新计算
             匹配5v5次数=0
             if 辅助: break #异常终止("夜间停止刷游戏")
