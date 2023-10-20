@@ -3,7 +3,7 @@
 #可以这样命令行中运行
 '''
 python -m pip  install --upgrade pip
-提前pip安装python -m pip  install -i https://pypi.tuna.tsinghua.edu.cn/simple  airtest, pathos
+提前pip安装python -m pip  install -i https://pypi.tuna.tsinghua.edu.cn/simple  airtest,pathos
 #debug代码
 link='Android:///127.0.0.1:5555'
 device = connect_device(link)
@@ -15,11 +15,15 @@ touch(pos)
 
 #for linux
 sudo apt-get install libgl1-mesa-glx
+#for mac
+chmod +x /Users/cndaqiang/anaconda3/lib/python3.11/site-packages/airtest/core/android/static/adb/mac/adb
 #for arm linux
 cndaqiang@oracle:~/.local/lib/python3.10/site-packages/airtest/core/android/static/adb/linux$ mv adb adb.bak
 cndaqiang@oracle:~/.local/lib/python3.10/site-packages/airtest/core/android/static/adb/linux$ ln -s /usr/bin/adb .
-#airtest使用monkey控制安卓的命令 monkey -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1
+
+#mac/linux都会报错 airtest使用monkey控制安卓的命令 monkey -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1
 #会报错** SYS_KEYS has no physical keys but with factor 2.0%.
+airtest.core.error.AdbError: stdout[b'  bash arg: -p\n  bash arg: com.tencent.tmgp.sgame\n  bash arg: -c\n  bash arg: android.intent.category.LAUNCHER\n  bash arg: 1\n'] stderr[b'args: [-p, com.tencent.tmgp.sgame, -c, android.intent.category.LAUNCHER, 1]\n arg: "-p"\n arg: "com.tencent.tmgp.sgame"\n arg: "-c"\n arg: "android.intent.category.LAUNCHER"\n arg: "1"\ndata="com.tencent.tmgp.sgame"\ndata="android.intent.category.LAUNCHER"\n** SYS_KEYS has no physical keys but with factor 2.0%.\n']
 #添加--pct-syskeys 0即可以通过, monkey --pct-syskeys 0 -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1
 #修改/home/cndaqiang/.local/lib/python3.10/site-packages/airtest/core/android/adb.py文件替代
 单开
@@ -106,6 +110,7 @@ DEBUG="debug" in sys.argv[0]
 设备类型_dict=["Android"]*5
 shiftnode=0 #当设置shiftnode时,英雄线路和字典文件进行shift; mynode只决定哪台虚拟机
 设备IP地址_dict[0]="127.0.0.1:"+str( 5555 ) #对抗路
+设备IP地址_dict[0]="192.168.192.10:"+str( 5555 ) #对抗路
 设备IP地址_dict[1]="127.0.0.1:"+str( 5565 )#中路
 设备IP地址_dict[2]="127.0.0.1:"+str( 5575 )#发育路
 设备IP地址_dict[3]="127.0.0.1:"+str( 5555 )#游走
@@ -166,10 +171,12 @@ global 青铜段位
 global 返回房间
 global 选择模式
 global 保存位置
+global 特殊活动 #一些活动时图标不同
 青铜段位=False
 选择模式=True #第一次点击后会自动设置选择模式=False， 为True时，会选择快速/标准模式以及人机段位
 返回房间=True #第二次运行后直接返回房间
 保存位置=True #当为Flase时,清空保存结果
+特殊活动=True
 辅助=True
 #一些变量可以保存,重复运行不用读入
 position_dict={}
@@ -549,7 +556,14 @@ def 异常处理_返回大厅(times=1):
     existsTHENtouch(用户协议同意,"用户协议同意")
     #
     开始游戏=Template(r"tpl1692947242096.png", record_pos=(-0.004, 0.158), resolution=(960, 540),threshold=0.9)
+    if 特殊活动: 开始游戏=Template(r"./huodong/tpl1697785739448.png", record_pos=(-0.004, 0.158), resolution=(960, 540),threshold=0.9)
     if existsTHENtouch(开始游戏,"登录界面.开始游戏",savepos=False): sleep(30)
+
+    #动态下载资源提示
+    动态下载资源=Template(r"tpl1697785792245.png", record_pos=(-0.004, -0.009), resolution=(960, 540))
+    if exists(动态下载资源):
+        取消=Template(r"tpl1697785803856.png", record_pos=(-0.099, 0.115), resolution=(960, 540))
+        existsTHENtouch(取消,"取消按钮")
 
     #活动界面
     活动关闭图标=Template(r"tpl1692947351223.png", record_pos=(0.428, -0.205), resolution=(960, 540),threshold=0.9)
@@ -642,7 +656,10 @@ def 进入匹配房间(times=1):
     异常处理_返回大厅()
     logger.warning("大厅中.开始进入匹配房间")
     #wait等待元素出现，没出现就执行intervalfunc
-    if not existsTHENtouch(Template(r"tpl1689666004542.png", record_pos=(-0.102, 0.145), resolution=(960, 540)),"对战",savepos=False):
+    对战图标=Template(r"tpl1689666004542.png", record_pos=(-0.102, 0.145), resolution=(960, 540))
+    if 特殊活动:
+        对战图标=Template(r"./huodong/tpl1697785844664.png", record_pos=(-0.102, 0.145), resolution=(960, 540))
+    if not existsTHENtouch(对战图标,"对战",savepos=False):
         logger.warning("选择对战失败")
         return 进入匹配房间(times)
     sleep(2)
@@ -670,8 +687,6 @@ def 进入匹配房间(times=1):
     开始练习 = Template(r"tpl1689666102973.png", record_pos=(0.323, 0.161), resolution=(960, 540),threshold=0.9)
     if not existsTHENtouch(开始练习,"开始练习"): return 进入匹配房间(times)
     sleep(10)
-    #
-    房间中的开始按钮=Template(r"tpl1689666117573.png", record_pos=(0.096, 0.232), resolution=(960, 540)) #貌似没用
     if not 房间中():
         #有时候长时间不进去被禁赛了
         while existsTHENtouch(Template(r"tpl1689667950453.png", record_pos=(-0.001, 0.111), resolution=(960, 540)),"不匹配被禁赛的确定按钮"):
@@ -714,7 +729,10 @@ def 匹配游戏(times=1):
     while True:
         #点击开始匹配按钮
         if 英雄属性["type"]:
-            if 房间中(): existsTHENtouch(Template(r"tpl1689666117573.png", record_pos=(0.096, 0.232), resolution=(960, 540)),"开始匹配按钮")
+            房间中的开始按钮=Template(r"tpl1689666117573.png", record_pos=(0.096, 0.232), resolution=(960, 540))
+            if 特殊活动:
+                房间中的开始按钮=Template(r"./huodong/tpl1697785875048.png", record_pos=(0.096, 0.232), resolution=(960, 540))
+            if 房间中(): existsTHENtouch(房间中的开始按钮,"开始匹配按钮")
         else:
             logger.warning("辅助开始匹配")
         #
@@ -779,7 +797,12 @@ def 匹配游戏(times=1):
 
 
 def 大厅中():
-    if exists(Template(r"tpl1689667333420.png", record_pos=(-0.176, 0.144), resolution=(960, 540))):
+    大厅图标=Template(r"tpl1689667333420.png", record_pos=(-0.176, 0.144), resolution=(960, 540))
+    if exists(大厅图标):
+        logger.warning("正在大厅中")
+        return True
+    大厅图标=Template(r"./huodong/tpl1697786415882.png", record_pos=(-0.176, 0.144), resolution=(960, 540))
+    if exists(大厅图标):
         logger.warning("正在大厅中")
         return True
 
@@ -1733,6 +1756,7 @@ else:
         out = p.map_async(multi_start,m_cpu).get()
         p.close()
         p.join()
+
 
 
 
