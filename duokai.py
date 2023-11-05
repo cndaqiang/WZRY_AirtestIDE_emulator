@@ -68,6 +68,8 @@ netsh advfirewall firewall add rule name="6555ADB" dir=in action=allow protocol=
 
 #金币数量35*4=140(单人组队)+150每日活跃=290. 290*7+700(周活跃)=2730.
 #对战上限3700. Total=6430. ~2周13888英雄
+#降低性能设置
+基础>关闭MVP动画、特效
 '''
 
 __author__ = "cndaqiang"
@@ -172,12 +174,14 @@ global 返回房间
 global 选择模式
 global 保存位置
 global 特殊活动 #一些活动时图标不同
+global 辅助重新开始 #两个账户一起游戏时,重新进入房间和邀请
 青铜段位=False
 选择模式=True #第一次点击后会自动设置选择模式=False， 为True时，会选择快速/标准模式以及人机段位
 返回房间=True #第二次运行后直接返回房间
 保存位置=True #当为Flase时,清空保存结果
 特殊活动=False
 辅助=True
+辅助重新开始=False
 #一些变量可以保存,重复运行不用读入
 position_dict={}
 position_dict_file="position_dict.txt"
@@ -320,16 +324,16 @@ def LoopTouch(png=Template(r"1.png"),keystr="",limit=0,loop=10,savepos=False):
 
     pass
 def 异常终止(errinfo="程序异常终止"):
-    logger.warning(errinfo)
-    global 设备信息
     global mynode
+    global 设备信息
+    logger.warning(f"{mynode}:异常终止"+errinfo)
     try:
-        logger.warning("关闭APP")
+        logger.warning(f"{mynode}:关闭APP")
         stop_app(设备信息["王者应用ID"])
     except:
-        logger.warning("关闭APP失败")
+        logger.warning(f"{mynode}:关闭APP失败")
     关闭虚拟机(获得连接虚拟机ID())
-    logger.warning("关闭自己")
+    logger.warning(f"{mynode}:关闭自己")
     os.kill(os.getpid(), signal.SIGTERM)
     return True
 timedict={}
@@ -414,7 +418,9 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
     timelimit(timekey="barrier"+name,limit=60*20,init=True)
     barrieryes=0
     for loop in range(60*2): #20min
-        if timelimit(timekey="barrier"+name,limit=60*20,init=False): 异常终止("结束游戏时间过长")
+        if timelimit(timekey="barrier"+name,limit=60*20,init=False): 
+            logger.warning("结束游戏时间过长")
+            return False
         if type: #如果是主节点，先等待其他节点删除主节点文件
            barrieryes=True
            for i in np.arange(1,totalnode):
@@ -432,7 +438,7 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
         for i in np.arange(1,totalnode):
             removefile(name+getmytag(True,mynode_))
         logger.warning("-----MASTER:同步失败"+name)
-    异常终止("同步失败")
+    #异常终止("同步失败")
     return False
 
 
@@ -614,24 +620,6 @@ def 异常处理_返回大厅(times=1):
     return 异常处理_返回大厅(times)
 
 
-        
-    
-    #返回
-
-#
-def 手动返回房间(name=''):
-    #手动返回房间
-    for loop in range(60):
-        if 房间中(): return True
-        logger.warning(name+":无法进入房间,请手动操作")
-        sleep(5)
-    异常终止("多开无法返回房间")
-    return False    
-#@todo
-def 邀请辅助():
-    return
-
-
 def 进入匹配房间(times=1):
     global 返回房间
     global 选择模式
@@ -747,6 +735,13 @@ def 匹配游戏(times=1):
         if 队友确认匹配: break
         sleep(2)
     #只有 队友确认匹配 才会执行下面的命令,不然就在循环中timelimit中返回False了
+    #
+    global 容器优化
+    global 辅助
+    if 容器优化 and 辅助:
+        barriernode(type=英雄属性["type"],name="容器优化不选英雄")
+        sleep(120)
+        return
     #
     global 选择英雄
     if not 选择英雄: sleep(30)
@@ -1109,15 +1104,12 @@ def 游戏结束():
     logger.warning("等待对战结束")
     #
     ionode = mynode == 0 or totalnode == 1
-    endgamefile="endgame."+str(totalnode)+".txt"
-    first = totalnode > 1
-    if 辅助 and ionode: removefile(endgamefile) #endgame会在此处初始化删除,后面无需删除
     #
     barriernode(type=英雄属性["type"],name="checkend_init")
     timelimit(timekey="endgame",limit=60*20,init=True)
     while True:
         if timelimit(timekey="endgame",limit=60*30,init=False) or 健康系统() or 大厅中():
-            if 辅助: 异常终止("结束游戏时间过长 OR 健康系统 OR 大厅中")
+            logger.warning("辅助模式:结束游戏时间过长 OR 健康系统 OR 大厅中")
             return 异常处理_返回大厅()
         网络优化()
         if 房间中(): return
@@ -1134,18 +1126,7 @@ def 游戏结束():
         #减少判断游戏结束的资源占用
         if not jixu:
             if 防止卡顿: 点击移动(1)
-        if 辅助 and first:
-            if ionode:
-               if jixu: touchfile(endgamefile)
-            else:
-               if os.path.exists(endgamefile):
-                   jixu = True
-                   logger.warning("收到主节点继续信号")
-               else:
-                   logger.warning("等待主节点继续信号")
-                   sleep(20)
-                   continue
-            if jixu: first = False
+        #这个辅助,容易让自动邀请脚本失效，可能会造成时间差异
         #分享和返回房间的按键有些冲突
         游戏结束了=Template(r"tpl1694360304332.png", record_pos=(-0.011, -0.011), resolution=(960, 540))
         if exists(游戏结束了):
@@ -1200,9 +1181,6 @@ def 游戏结束():
             logger.warning("网络卡顿提示")
             jixu=True
             sleep(2)         
-        #
-        #
-        if first and jixu : continue
         #
         sleep(10)  
         if not jixu:
@@ -1312,7 +1290,7 @@ def 游戏结束_王者模拟战():
     timelimit(timekey="endgame",limit=60*20,init=True)
     while True:
         if timelimit(timekey="endgame",limit=60*30,init=False) or 健康系统() or 大厅中():
-            if 辅助: 异常终止("结束游戏时间过长 OR 健康系统 OR 大厅中")
+            logger.warning("结束游戏时间过长 OR 健康系统 OR 大厅中")
             return 异常处理_返回大厅()
         网络优化()
         if 房间中_王者模拟战(): return
@@ -1562,6 +1540,7 @@ def 重启游戏():
     global 匹配模式
     global 模拟战模式
     global 模拟战MaxStep
+    global 容器优化
     #
     #这里的%6也是对应提供了6种配置
     position_dict_file="position_dict."+str((shiftnode+mynode)%6)+".txt"
@@ -1585,20 +1564,23 @@ def 重启游戏():
             if not device:
                 try:
                     device = connect_device(link)
-                    logger.warning("链接成功"+link)
+                    logger.warning(f"{mynode}:链接成功"+link)
                     设备信息["链接"]=link
                     break
                 except:
-                    logger.warning("链接失败"+link)
+                    logger.warning("f{mynode}:链接失败"+link)
                 #-------------------
-                logger.warning("设备信息: {}".format(设备信息))
+                logger.warning("f{mynode}:设备信息: {}".format(设备信息))
+            if 辅助: break
         #
         if not device:
-            if not 辅助:
-                logger.warning("链接失败.....重启虚拟机中")
-                重启APP(设备信息["王者应用ID"],0,设备信息["链接"])
-            else:
-                异常终止("ADB连接设备失败")
+            logger.warning(f"{mynode}:链接失败.....重启虚拟机中")
+            重启APP(设备信息["王者应用ID"],mynode*10,设备信息["链接"])
+            #if not 辅助:
+            #    logger.warning("链接失败.....重启虚拟机中")
+            #    重启APP(设备信息["王者应用ID"],0,设备信息["链接"])
+            #else:
+            #    异常终止("ADB连接设备失败")
         #
         if DEBUG and False:
             开启虚拟机()
@@ -1612,19 +1594,18 @@ def 重启游戏():
         minu=current_time.minute
         #
         startclock=5;endclock=9 #服务器5点刷新礼包和信誉积分等
-        if mynode != 0 and totalnode == 1:
+        if mynode != 0 and not 辅助:
             startclock=startclock+mynode*1
             endclock=endclock+mynode*1
         if k == 0: startclock=-1;endclock=25
         if 模拟战模式 and 模拟战次数 < 模拟战MaxStep: startclock=-1;endclock=25
         if DEBUG and k < 2: startclock=-1;endclock=25
-        #
+        #时间管理,辅助模式也是用
         while hour >=  endclock or hour < startclock: #< startclock
             logger.warning("匹配5v5运行次数"+str(匹配5v5次数))
             logger.warning("模拟战运行次数"+str(模拟战次数))
             模拟战次数=0 #第二天了归0重新计算
             匹配5v5次数=0
-            if 辅助: break #异常终止("夜间停止刷游戏")
             logger.warning("夜间停止刷游戏")
             #结束对战和每日凌晨会领礼包
             异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
@@ -1651,15 +1632,25 @@ def 重启游戏():
 
         logger.warning("开启完毕")
         start_app(设备信息["王者应用ID"])
-        #每隔1h休息10min,防止电脑过热
-        if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
-        if 匹配模式 and 匹配5v5次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
-        if 模拟战模式 and 模拟战次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
-        if not 辅助: #领取礼包和笔记本冷却
+        #领取礼包和笔记本冷却,辅助模式按照运行次数领取,不按照时间领取
+        if not 辅助: 
+            #每隔1h休息10min,防止电脑过热
+            if k == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
+            if 匹配模式 and 匹配5v5次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
+            if 模拟战模式 and 模拟战次数 == 0: timelimit(timekey="冷却电脑",limit=1*60*60,init=True)
             if timelimit(timekey="冷却电脑",limit=1*60*60,init=False):
                 logger.warning("防止过热.休息一会")
                 异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
                 if not 容器优化:  重启APP(设备信息["王者应用ID"],10*60)
+        else:
+            #辅助模式的时间管理
+            if (匹配5v5次数+1)%10 == 0: #每十次,重启一次所有程序
+                barriernode(type=英雄属性["type"],name="辅助模式:辅助模式重启APP")
+                logger.warning("辅助模式:定时重启APP")
+                异常处理_返回大厅();领任务礼包();领邮件礼包();小妲己礼物();
+                重启APP(设备信息["王者应用ID"],mynode*30)
+                匹配5v5次数=0
+                
         #
         logger.warning("第 {} 次运行子程序".format(k+1))
         #
@@ -1674,8 +1665,47 @@ def 重启游戏():
         if 匹配模式:
             匹配5v5次数=匹配5v5次数+1
             logger.warning("5v5匹配模式")
-            #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
-            if 辅助: 手动返回房间("startgame")
+            if 辅助:
+                ionode = mynode == 0 or totalnode == 1                   
+                #当多人组队模式时，这里要暂时保证是房间中，因为邀请系统还没写好
+                startgamefile="startgame."+str(totalnode)+".txt"
+                if 辅助 and ionode: removefile(startgamefile) #endgame会在此处初始化删除,后面无需删除
+                重新开始file="辅助模式重新开始.txt"
+                barriernode(type=英雄属性["type"],name="checkStart_init")
+                if(ionode): removefile(重新开始file)
+                barriernode(type=英雄属性["type"],name="checkStart")
+
+                #先都统一进入房间
+                取消准备=Template(r"tpl1699179402893.png", record_pos=(0.098, 0.233), resolution=(960, 540))
+                进入匹配房间()
+                #在判断是否在同一个房间
+                if not ionode:
+                    timelimit(timekey=f"辅助进房{mynode}",limit=60*5,init=True)
+                    while not exists(取消准备):
+                       #需要小号和主号建立亲密关系，并在主号中设置亲密关系自动进入房间
+                       logger.warning(f"{mynode}不在房间中")
+                       进入匹配房间()
+                       进房=Template(r"tpl1699181922986.png", record_pos=(0.46, -0.15), resolution=(960, 540),threshold=0.9)
+                       进房间=Template(r"tpl1699181937521.png", record_pos=(0.348, -0.194), resolution=(960, 540))
+                       if existsTHENtouch(进房):
+                           logger.warning(f"{mynode}找到房间")
+                           if existsTHENtouch(进房间):
+                               logger.warning(f"{mynode}尝试进入房间中")
+                       if timelimit(timekey=f"辅助进房{mynode}",limit=60*5,init=False): break
+                       sleep(10)
+                    if not exists(取消准备):
+                        touchfile(重新开始file)
+                #
+                if not barriernode(type=英雄属性["type"],name="邀请房间"): touchfile(重新开始file)
+                #
+                if os.path.exists(重新开始file):
+                    logger.warning("进入房间失败,...重启虚拟机中")
+                    重启APP(设备信息["王者应用ID"],mynode*30,设备信息["链接"])
+                    #这里最好同步一下匹配次数,不如直接设置为1
+                    匹配5v5次数=0
+                    continue
+                
+            #.........................
             if not barriernode(type=英雄属性["type"],name="room"):
                 logger.warning("游戏房间.同步失败")
             #
@@ -1685,6 +1715,7 @@ def 重启游戏():
                 logger.warning("匹配游戏.同步失败")
             #加速对战
             加速对战 = k> 0 and 匹配5v5次数%5 == 0 and 辅助 #在辅助模式打开加速对战,此情况是顺便刷日常活动用,避免挂机检测用
+            #
             timelimit(timekey="加速对战",limit=60*30,init=True)
             if 加速对战:
                 while 对战中(加速对战): 
