@@ -183,6 +183,7 @@ global 辅助重新开始 #两个账户一起游戏时,重新进入房间和邀�
 辅助=True
 辅助重新开始=False
 辅助同步file="辅助模式需要重新同步.txt" #当某个节点健康禁赛、被顶掉了,卡在哪里同步失败时,所有节点直跳过所有函数,回到主循环关闭程序后,重新开始
+辅助对战次数file="辅助对战次数.txt"
 #一些变量可以保存,重复运行不用读入
 position_dict={}
 position_dict_file="position_dict.txt"
@@ -190,7 +191,8 @@ position_dict_file="position_dict.txt"
 windowsplatform = 'win' in sys.platform
 linuxplatform = 'linux' in sys.platform
 容器优化=linuxplatform
-
+#新代码内容
+#定义一个对象，存储多种需要同步的变量，用于存到一个文件
 #读取变量
 def read_dict(position_dict_file="position_dict.txt"):
     global 辅助
@@ -417,9 +419,7 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
     if mynode_ < 0: mynode_ = mynode
     #
     name="barrier."+name
-    logger.warning(".....................")
-    logger.warning(f"同步中({mynode_})"+name)
-    logger.warning(".....................")
+    logger.warning(f"同步({mynode_}):"+name)
     #
     if type: #ionode
         for i in np.arange(1,totalnode):
@@ -435,7 +435,7 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
                 return True
         #
         if timelimit(timekey="barrier"+name,limit=60*20,init=False): 
-            logger.warning("结束游戏时间过长")
+            logger.warning(f"同步({mynode_}):时间过长,结束同步")
             if totalnode > 1:
                 touchfile(辅助同步file)
                 continue
@@ -445,18 +445,22 @@ def barriernode(type=True,name="barrierFile",mynode_=-10):
            for i in np.arange(1,totalnode):
                barrieryes = barrieryes and not os.path.exists(name+getmytag(True,i))
            if barrieryes:
-               logger.warning("+++++MASTER:同步完成"+name)
+               logger.warning(f"同步({mynode_}):同步完成"+name)
                return True
         else:
-              if removefile(name+getmytag(True,mynode_)):
-                 #logger.warning("+++++node:同步完成,等待数秒")
-                 #sleep(mynode_ * 2 )
+              rmfilename=name+getmytag(True,mynode_)
+              if os.path.exists(rmfilename):
+                 removefile(rmfilename)
+                 logger.warning(f"同步({mynode_}):同步完成"+name)
                  return True
-        sleep(1)
+                 #sleep(mynode_ * 2 )
+              else:
+                  if loop%60 == 0: logger.warning(f"({mynode}):同步中,找不到{rmfilename}")
+        sleep(10)
     if type: #清理文件
         for i in np.arange(1,totalnode):
             removefile(name+getmytag(True,mynode_))
-        logger.warning("-----MASTER:同步失败"+name)
+        logger.warning(f"同步({mynode_}):同步失败"+name)
     #异常终止("同步失败")
     return False
 
@@ -1587,6 +1591,7 @@ def 重启游戏():
     barriernode(type=英雄属性["type"],name="连接设备")
     for k in range(次数):
         #确定ADB正确连接
+        logger.warning("({}) 第 {} 次运行子程序".format(mynode,k+1))
         for port in np.append(int(port),np.arange(5555,5555,10)):
             link=ip+":"+str(port)
             if not device:
@@ -1619,7 +1624,7 @@ def 重启游戏():
         #辅助时的禁赛模式
         if 辅助:
             if os.path.exists(辅助同步file):
-                匹配5v5次数=0
+                #匹配5v5次数=0
                 if 辅助同步中:#第二次到此为止,不休息了,开始检测设备信息
                     logger.warning(f"({mynode})休息结束,检测其他节点是否休息结束")
                     存在文件=False
@@ -1649,6 +1654,20 @@ def 重启游戏():
             removefile(辅助同步file)
 
         if 辅助 and os.path.exists(辅助同步file): continue
+        #校验 5v5同步次数
+        if 辅助:
+            if mynode == 0:
+                对战次数={}
+                对战次数["5v5"]=匹配5v5次数
+                对战次数["模拟战"]=模拟战次数
+                save_dict(对战次数,辅助对战次数file)
+            elif os.path.exists(辅助对战次数file):
+                对战次数=read_dict(辅助对战次数file)
+                if "5v5" in 对战次数.keys(): 匹配5v5次数=对战次数["5v5"]
+                if "模拟战" in 对战次数.keys(): 模拟战次数=对战次数["模拟战"]
+            barriernode(type=英雄属性["type"],name="辅助模式:同步对战次数")
+            if os.path.exists(辅助同步file): continue
+
         #
         #凌晨到任务刷新时间关闭游戏
         current_time=datetime.now(eastern_eight_tz)
@@ -1718,7 +1737,6 @@ def 重启游戏():
                 匹配5v5次数=0
                 
         #
-        logger.warning("({}) 第 {} 次运行子程序".format(mynode,k+1))
         #
         #
         if 模拟战模式 and 模拟战次数 < 模拟战MaxStep:
@@ -1773,8 +1791,6 @@ def 重启游戏():
                 if os.path.exists(重新进房file):
                     logger.warning("进入房间失败,...重启虚拟机中")
                     重启APP(设备信息["王者应用ID"],mynode*30)
-                    #这里最好同步一下匹配次数,不如直接设置为1
-                    匹配5v5次数=0
                     continue
                 #...............................................................
             #
@@ -1846,6 +1862,14 @@ if len(sys.argv) == 1:
 removefile("EXIT.txt")
 removefile("END.txt")
 removefile(辅助同步file)
+#清除barrier文件
+for ifile in os.listdir():
+    if ".png" == ifile[-4:]: continue
+    if ".py" == ifile[-3:]: continue
+    if ".sh" == ifile[-3:]: continue
+    if 'barrier.' == ifile[:8]:
+        if 'mom' in ifile:
+            removefile(ifile)
 辅助=totalnode > 1
 返回房间=返回房间 or 辅助
 
